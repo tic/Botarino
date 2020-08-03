@@ -15,7 +15,6 @@ class Echo extends Command {
     }
 
     async run() {
-        this.m.delete();
         let count = parseInt(this.argv[1]);
         if(!count || count < 0 || count > 100) count = 1;
 

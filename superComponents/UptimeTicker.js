@@ -15,7 +15,7 @@ class UptimeTicker {
         this.intervalID = setInterval(this.tick.bind(this), 1000);
     }
 
-    static INTERVAL = 4;
+    static INTERVAL = 8;
     static expander = n => n.toString().length !== 1 ? n.toString() : `0${n}`;
 
     cease() {
