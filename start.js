@@ -44,7 +44,7 @@ class Botarino {
         // If the client errors out, attempt login again.
         this.Client.on("error", err => {
             console.log(err);
-            this.client.login(Credentials.ClientSecret);
+            this.Client.login(Credentials.ClientSecret);
         });
     }
 

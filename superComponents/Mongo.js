@@ -24,6 +24,9 @@ class MongoWrapper {
             let conn = await this.Client.connect();
             this.connected = true;
             console.log("MongoDB connected!\n");
+        } catch(e) {
+            console.log("Mongo connection error:", e);
+            console.log("Verify the current connection IP is on the MongoDB Atlas whitelist!");
         } finally {
             release();
         }

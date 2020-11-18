@@ -111,7 +111,11 @@ class Robozot extends Command {
                             resolved = true;
                             clearTimeout(timeout);
                             resolve(msg);
-                            client.destroy();
+                            try {
+                                client.destroy();
+                            } catch(e) {
+                                console.log("robozot socket client destruction error", e)
+                            }
                         }
                     }
 
@@ -141,9 +145,13 @@ class Robozot extends Command {
                 this.m.channel.startTyping();
                 let response = await thinking;
                 if(response) await this.m.channel.send(response);
+                else await this.m.channel.send("TImed out waiting for a response from Robozot. Here's the in-cannon explanation:\n> Robozot freezes wherever he currently is and does not move for the rest of the turn. Robozot is completely and utterly unresponsive.")
                 await this.m.channel.stopTyping();
                 await giveUpExclusivity();
-                client = null;
+                if(client) {
+                    client.destroy();
+                    client = null;
+                }
                 break;
         }
 

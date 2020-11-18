@@ -8,14 +8,14 @@ class UptimeTicker {
         this.minutes = 0;
         this.hours = 0;
 
-        this.status = "Seinfeld for $H:$M:$S";
+        this.status = "Seinfeld | $Hh$Mm";
         this.statusOptions = {type: "WATCHING"};
 
         this.tick();
         this.intervalID = setInterval(this.tick.bind(this), 1000);
     }
 
-    static INTERVAL = 8;
+    static INTERVAL = 60;
     static expander = n => n.toString().length !== 1 ? n.toString() : `0${n}`;
 
     cease() {
