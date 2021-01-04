@@ -1114,7 +1114,7 @@ class Episode extends Command {
 
                 const { name, spot, runtime, link } = EPISODES[i];
                 const rem = runtime - progress;
-                const loopMsg = loops ? `> This is my ${loops}${loops % 10 === 1 ? "st" : loops % 10 === 2 ? "nd" : loops % 10 === 3 ? "rd" : "th"} trip through the show.\n` : ``
+                const loopMsg = loops ? `> This is my ${loops}${loops % 10 === 1 && loops !== 11 ? "st" : loops % 10 === 2 && loops !== 12 ? "nd" : loops % 10 === 3 && loops !== 13 ? "rd" : "th"} trip through the show.\n` : ``
                 this.m.channel.send(`${loopMsg}> **Watching ${spot} - ${name}**\n> Timestamp: ${formatNum(parseInt(progress / 60))}:${formatNum(progress % 60)} (${formatNum(parseInt(rem / 60))}:${formatNum(rem % 60)} remaining)\n> This episode is ${formatNum(parseInt(runtime / 60))}m${formatNum(runtime % 60)}s long.\n${link}`)
 
                 break;
