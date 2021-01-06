@@ -6,10 +6,12 @@
 
 const   refresh = require('import-fresh'),
         decache = require('decache'),
-        fs = require('fs');
+        fs = require('fs'),
+        moment = require('moment');
 
 class MessageHandler {
     constructor(Client, Mongo, getUptime) {
+        Client.sendMessage = (channel, content) => Client.channels.cache.get(channel) ? Client.channels.cache.get(channel).send(content) : null;
         this.Client = Client;
         this.born = new Date();
         this.used = {};
@@ -19,6 +21,9 @@ class MessageHandler {
         this.gifs = [];
         this.loadGIFs(Mongo);
 
+        this.executeReminders();
+        this.reminderTimeout = setInterval(this.executeReminders.bind(this), 3600000);
+
         console.log("MessageHandler reloaded.\n");
     }
 
@@ -26,8 +31,33 @@ class MessageHandler {
         Object.keys(this.used).forEach(loc => {
             decache(loc);
         });
+        clearTimeout(this.reminderTimeout);
         this.Client = null;
         this.used = null;
+    }
+
+    async executeReminders() {
+        const m = moment();
+        const Days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+        const or_arguments = [
+            { frequency: "DAILY" }, // Daily reminders
+            { frequency: Days[m.day()] }, // Weekly reminders
+            { frequency: m.date() }, // Monthly reminders (from the front)
+            { frequency: m.date() - moment(m).month(m.month() + 1).date(0).date() }, // Monthly reminders (from the back)
+            { frequency: m.format("MM-DD") }, // Yearly reminders
+            { frequency: m.format("MM-DD-YY") }, // One-off reminders
+        ];
+
+        const events = await this.Mongo.getEvents({
+            trigger: m.hour(),
+            $or: or_arguments,
+        });
+
+        for(var i = 0; i < events.length; i++) {
+            const event = events[i];
+            this.Client.sendMessage(event.channel, `${event.title}\n${event.description}`);
+            await new Promise((resolve, _) => setTimeout(resolve, 2000));
+        }
     }
 
     updateMongo(Mongo) {

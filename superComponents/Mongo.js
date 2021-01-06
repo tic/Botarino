@@ -94,7 +94,7 @@ class MongoWrapper {
     async getMessages(server_id, filter) {
         const [_, release] = await this.clientLock.acquire();
         try {
-            let collection = this.Client.db("servers").collection(server_id);
+            const collection = this.Client.db("servers").collection(server_id);
             return await collection.find(filter).toArray();
         } finally { release(); }
     }
@@ -102,7 +102,7 @@ class MongoWrapper {
     async getNumMessages(server_id, filter) {
         const [_, release] = await this.clientLock.acquire();
         try {
-            let collection = this.Client.db("servers").collection(server_id);
+            const collection = this.Client.db("servers").collection(server_id);
             return await collection.countDocuments(filter);
         } finally { release(); }
     }
@@ -110,7 +110,7 @@ class MongoWrapper {
     async logPlayedSound(server_id, user_id, sound, timestamp) {
         const [_, release] = await this.clientLock.acquire();
         try {
-            let collection = this.Client.db("stats").collection("sounds");
+            const collection = this.Client.db("stats").collection("sounds");
 
             await collection.insertOne({
                 server: server_id,
@@ -127,7 +127,7 @@ class MongoWrapper {
 
         const [_, release] = await this.clientLock.acquire();
         try {
-            let collection = this.Client.db("stats").collection("commands");
+            const collection = this.Client.db("stats").collection("commands");
 
             await collection.insertOne(Object.assign({
                 server: msg.guild ? msg.guild.id : "dm",
@@ -140,6 +140,48 @@ class MongoWrapper {
                 elapsedTime
             }, error !== "" ? { error } : null));
         } catch(e) { console.log(e);
+        } finally { release(); }
+    }
+
+    async createEvent(author, title, description, channel, frequency, trigger) {
+        // Do format checking before trying to get the lock
+
+        const [_, release] = await this.clientLock.acquire();
+        try {
+            const collection = this.Client.db("events").collection("reminders");
+            const ret = collection.insertOne({
+                author,
+                channel,
+                frequency,
+                trigger,
+                title,
+                description
+            });
+            console.log(ret);
+            return true;
+        } catch(err) {
+            console.log(err);
+            return false;
+        } finally { release(); }
+    }
+
+    async deleteEvent(id) {
+        const [_, release] = await this.clientLock.acquire();
+        try {
+            const collection = null;
+
+        } catch(err) { console.log(err);
+        } finally { release(); }
+    }
+
+    async getEvents(constraints) {
+        console.log(constraints);
+        const [_, release] = await this.clientLock.acquire();
+        try {
+            const collection = this.Client.db("events").collection("reminders");
+            const events = await collection.find(constraints).toArray();
+            return events || [];
+        } catch(err) { console.log(err);
         } finally { release(); }
     }
 }
