@@ -10,7 +10,7 @@ const   refresh = require('import-fresh'),
         moment = require('moment');
 
 class MessageHandler {
-    constructor(Client, Mongo, getUptime) {
+    constructor(Client, Mongo, getUptime, loud) {
         Client.sendMessage = (channel, content) => Client.channels.cache.get(channel) ? Client.channels.cache.get(channel).send(content) : null;
         this.Client = Client;
         this.born = new Date();
@@ -21,7 +21,7 @@ class MessageHandler {
         this.gifs = [];
         this.loadGIFs(Mongo);
 
-        this.executeReminders();
+        if(loud) this.executeReminders();
         this.reminderTimeout = setInterval(this.executeReminders.bind(this), 3600000);
 
         console.log("MessageHandler reloaded.\n");

@@ -54,6 +54,16 @@ class Botarino {
     // Wrapper for the ticker's getUptime method to provide access to the MessageHandler
     getUptime = type => this.ticker.getUptime(type);
 
+    // Reload message handler
+    reloadMessageHandler(loud) {
+        this.messageHandler.cease();
+        this.messageHandler = null;
+        decache(HandlerLocation);
+        MessageHandler = refresh(HandlerLocation);
+        this.messageHandler = new MessageHandler(this.Client, this.Mongo, this.getUptime.bind(this), loud === true);
+        return;
+    }
+
     // Main onMessage for the Bot
     onMessage(m) {
         // Ignore messages from myself.
@@ -65,11 +75,11 @@ class Botarino {
 
                 // !reload: reinstantiate message handler
                 case "!reload":
-                    this.messageHandler.cease();
-                    this.messageHandler = null;
-                    decache(HandlerLocation);
-                    MessageHandler = refresh(HandlerLocation);
-                    this.messageHandler = new MessageHandler(this.Client, this.Mongo, this.getUptime.bind(this));
+                    this.reloadMessageHandler(false);
+                    if(m.channel.type !== "dm") m.delete();
+                    return;
+                case "!reload loud":
+                    this.reloadMessageHandler(true);
                     if(m.channel.type !== "dm") m.delete();
                     return;
 
