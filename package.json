@@ -16,7 +16,7 @@
     "moment": "^2.29.1",
     "mongodb": "^3.5.8",
     "net": "^1.0.2",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "node-ffmpeg": "^0.0.0",
     "randexp": "^0.5.3"
   },
