@@ -21,8 +21,14 @@ class MessageHandler {
         this.gifs = [];
         this.loadGIFs(Mongo);
 
+        // Execute reminders immediately if this was a "loud" reload.
+        // Set a timeout to execute reminders again at the top of the hour,
+        // and from there run reminders every hour.
         if(loud) this.executeReminders();
-        this.reminderTimeout = setInterval(this.executeReminders.bind(this), 3600000);
+        setTimeout(() => {
+            this.executeReminders();
+            this.reminderInterval = setInterval(this.executeReminders.bind(this), 3600000);
+        }, 3600000 - new Date().getTime() % 3600000);
 
         console.log("MessageHandler reloaded.\n");
     }
@@ -31,7 +37,7 @@ class MessageHandler {
         Object.keys(this.used).forEach(loc => {
             decache(loc);
         });
-        clearTimeout(this.reminderTimeout);
+        clearInterval(this.reminderInterval);
         this.Client = null;
         this.used = null;
     }
@@ -52,7 +58,6 @@ class MessageHandler {
             trigger: m.hour(),
             $or: or_arguments,
         });
-
         for(var i = 0; i < events.length; i++) {
             const event = events[i];
             this.Client.sendMessage(event.channel, `${event.title}\n${event.description}`);

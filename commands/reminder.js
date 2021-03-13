@@ -93,9 +93,11 @@ class Reminder extends Command {
                     var trigDisp = trigger > 11 ? `${trigger - 12} pm` : `${trigger} am`;
                 }
 
+                title = title.replace('\*', '*').replace('\`', '`').replace('\_', '_');
+                description = description.replace('\*', '*').replace('\`', '`').replace('\_', '_');
                 const success = await this.Mongo.createEvent(this.m.author.id, title, description, channel, frequency, trigger);
                 if(success) {
-                    this.m.channel.send(`Successfully scheduled event reminder! Event details:\n> Frequency: \`${freqDisp} around ${trigDisp}\`\n> Channel: \`${channel}\`\n> Title Preview: ${title.replace('\*', '*').replace('\`', '`').replace('\_', '_')}\n> Description Preview: ${description.replace('\*', '*').replace('\`', '`').replace('\_', '_')}`);
+                    this.m.channel.send(`Successfully scheduled event reminder! Event details:\n> Frequency: \`${freqDisp} around ${trigDisp}\`\n> Channel: \`${channel}\`\n> Title Preview: ${title}\n> Description Preview: ${description}`);
                 }
                 else this.m.channel.send("Event reminder could not be scheduled :anguished:");
                 return;

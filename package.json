@@ -18,6 +18,8 @@
     "net": "^1.0.2",
     "node-fetch": "^2.6.0",
     "node-ffmpeg": "^0.0.0",
+    "node-opus": "^0.3.3",
+    "opusscript": "0.0.8",
     "randexp": "^0.5.3"
   },
   "devDependencies": {},
