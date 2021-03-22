@@ -8,10 +8,11 @@ const   refresh = require('import-fresh'),
         decache = require('decache'),
         fs = require('fs'),
         moment = require('moment');
+const Discord = require('discord.js');
 
 class MessageHandler {
     constructor(Client, Mongo, getUptime, loud) {
-        Client.sendMessage = (channel, content) => Client.channels.cache.get(channel) ? Client.channels.cache.get(channel).send(content) : null;
+        Client.sendMessage = async (channel, content) => await Client.channels.fetch(channel) ? (await Client.channels.fetch(channel)).send(content).catch(err => console.log(err)) : null;
         this.Client = Client;
         this.born = new Date();
         this.used = {};
@@ -60,7 +61,15 @@ class MessageHandler {
         });
         for(var i = 0; i < events.length; i++) {
             const event = events[i];
-            this.Client.sendMessage(event.channel, `${event.title}\n${event.description}`);
+            var author = await this.Client.users.fetch(event.author);
+            var msg = new Discord.MessageEmbed()
+                .setColor('#' + [...new Array(6)].map(_ => ((Math.random() * 16) | 0).toString(16)).join('')) // Random color! :)
+                .setTitle(event.title)
+                .setAuthor(`${author.username}#${author.discriminator}`, author.displayAvatarURL(), '')
+                .setDescription(event.description)
+                .setTimestamp()
+                .setFooter('Create custom reminders with !reminder')
+            await this.Client.sendMessage(event.channel, { embed: msg})
             await new Promise((resolve, _) => setTimeout(resolve, 2000));
         }
     }
