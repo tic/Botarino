@@ -16,7 +16,7 @@ class Painting extends Command {
             var num = parseInt(this.argv[1]);
             if(num > 9999) num = 0;
         } else var num = parseInt(Math.random() * 10000)
-        this.m.channel.send(`https://1secondpainting.com/wp-content/uploads/2020/07/${num}.png`);
+        this.m.channel.send(`https://1secondpaintingimages.s3.us-west-2.amazonaws.com/${num}.png`);
     }
 
     static help() {
