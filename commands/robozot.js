@@ -9,6 +9,8 @@ const net = require('net');
 const fs = require('fs');
 var Semaphore = require('async-mutex').Semaphore;
 
+const Discord = require('discord.js');
+
 class Robozot extends Command {
 
     static usageLock = new Semaphore(1);
@@ -73,6 +75,10 @@ class Robozot extends Command {
                             resolve();
                         });
                     });
+
+                    const options = ["You're welcome.", "Anytime.", "Free of charge.", "You owe me one.", "That was just the beginning.", "Oh, it was nothing. :wink:", "No good deed will go unpunished."];
+                    this.m.channel.send(options[parseInt(Math.random() * options.length)]);
+
                     await delay;
                 } else this.m.channel.send("> You have to be in a voice channel to thank Robozot.")
                 break;
@@ -129,12 +135,14 @@ class Robozot extends Command {
 
                     client.on('data', resp => {
                         let action = resp.toString();
-                        let punctuations = [".", "!", "?"];
-                        if(punctuations.includes(action[action.length - 1])) doResolve(action);
-                        else {
-                            let party_members = ["Bozo", "Happy", "Reg", "Erv", "Adoy", "Clem", "the nearest NPC"];
-                            doResolve(`${action} ...\nWell, ${party_members[parseInt(Math.random() * party_members.length)]} can tell you the rest.`);
-                        }
+                        // let punctuations = [".", "!", "?"];
+                        // if(punctuations.includes(action[action.length - 1])) doResolve(action);
+                        // else {
+                        //     let party_members = ["Bozo", "Happy", "Reg", "Erv", "Adoy", "Clem", "the nearest NPC"];
+                        //     doResolve(`${action} ...\nWell, ${party_members[parseInt(Math.random() * party_members.length)]} can tell you the rest.`);
+                        // }
+
+                        doResolve(action);
                     });
 
                     client.on('close', () => {
@@ -144,7 +152,26 @@ class Robozot extends Command {
 
                 this.m.channel.startTyping();
                 let response = await thinking;
-                if(response) await this.m.channel.send(response);
+                if(response) {
+                    let [short, full] = response.split('^^^^^');
+                    var msg = new Discord.MessageEmbed()
+                        .setColor('#' + [...new Array(6)].map(_ => ((Math.random() * 16) | 0).toString(16)).join('')) // Random color! :)
+                        .setTitle(short)
+                        .setAuthor('Robozot', 'https://cdn.discordapp.com/attachments/671173264722100225/734580688115990539/iCubBlinking.png', '')
+                        .setDescription(full)
+                        .setTimestamp()
+                        .setFooter(`Ask ${["Bozo", "Happy", "Reg", "Erv", "Adoy", "the nearest NPC"][parseInt(Math.random() * 6)]} for context, if necessary`);
+
+                    const choice = Math.random();
+                    let roll = ['', ''];
+                    if(choice <= 0.6) roll = ['d100', Math.round(Math.random() * 99) + 1]
+                    else if(choice <= 0.9) roll = ['d20', Math.round(Math.random() * 19) + 1];
+                    else roll = ['Coin flip', Math.round(Math.random()) ? 'Heads (1)' : 'Tails (0)'];
+
+                    msg.addFields({ name: roll[0], value: roll[1] });
+                    await this.Client.sendMessage(this.m.channel.id, {embed: msg});
+                    // await this.m.channel.send({embed: msg});
+                }
                 else await this.m.channel.send("TImed out waiting for a response from Robozot. Here's the in-cannon explanation:\n> Robozot freezes wherever he currently is and does not move for the rest of the turn. Robozot is completely and utterly unresponsive.")
                 await this.m.channel.stopTyping();
                 await giveUpExclusivity();
