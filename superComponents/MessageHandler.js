@@ -31,6 +31,25 @@ class MessageHandler {
             this.reminderInterval = setInterval(this.executeReminders.bind(this), 3600000);
         }, 3600000 - new Date().getTime() % 3600000);
 
+        // Stop typing in all channels
+        async function ceaseTyping() {
+            try {
+                let chans = [];
+                Client.channels.cache.mapValues(channel => channel.stopTyping ? chans.push(channel) : null);
+                for(let i = 0; i < chans.length; i++) {
+                    console.log('stopping typing for channel', chans[i].id);
+                    await chans[i].stopTyping();
+                    await new Promise((resolve, _) => setTimeout(resolve, 3000));
+                }
+
+                console.log('typing ceased');
+
+            } catch(err) {
+                console.log('error in ceaseTyping(): ' + err.toString());
+            }
+        }
+        ceaseTyping();
+
         console.log("MessageHandler reloaded.\n");
     }
 
