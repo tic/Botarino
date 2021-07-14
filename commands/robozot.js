@@ -105,7 +105,7 @@ class Robozot extends Command {
 
                 let client = null;
                 let thinking = new Promise((resolve, reject) => {
-                    let timeout = setTimeout(resolve, 60000);
+                    let timeout = setTimeout(resolve, 70000);
                     let resolved = false;
 
                     // Send the rest of argv as a string to the connection socket.

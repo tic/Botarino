@@ -107,3 +107,4 @@ audio/
 soundboard/
 credentials.js
 library/
+unused/**

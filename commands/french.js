@@ -19,13 +19,25 @@ const fuse_instance = new Fuse(french, fuse_ops);
 class French extends Command {
 
     constructor(Client, m, argv) {
+        console.log("constructor");
         super(Client, m, argv);
-        this.m = m;
-        this.query = m.content.substring(8);
+        // this.m = m;
+        // this.query = m.content.substring(8);
+        this.stall = new Promise((resolve, reject) => {
+            this.m = m;
+            this.query = m.content.substring(8);
+            m.channel.startTyping();
+            resolve();
+        });
+
     }
 
     async run() {
+        await this.stall;
+        console.log("lets go");
         let result = fuse_instance.search(this.query)[0];
+        console.log("search over");
+        await this.m.channel.stopTyping();
         let context = this.m.channel.guild ? this.m.channel.guild.id : "dm";
         if(result) {
             switch(context) {
@@ -48,6 +60,7 @@ class French extends Command {
                 break;
             }
         }
+        this.m.channel.stopTyping();
     }
 
     static help() {
