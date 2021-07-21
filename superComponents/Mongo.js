@@ -175,7 +175,6 @@ class MongoWrapper {
     }
 
     async getEvents(constraints) {
-        console.log(constraints);
         const [_, release] = await this.clientLock.acquire();
         try {
             const collection = this.Client.db("events").collection("reminders");

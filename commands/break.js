@@ -22,15 +22,16 @@ class Break extends Command {
 
             let content = await response.text();
             let i = 0;
-            while(i < text.length) {
-                this.channel.send(content.substring(i, 2000));
-                i += 2000;
+            while(i < content.length) {
+                let next = i + 1900;
+                this.channel.send(content.substring(i, next));
+                i = next;
 
                 // Sleep for 1000ms to avoid Discord cooldown.
                 await new Promise(res => setTimeout(res, 1000));
             }
         } catch(e) {
-
+            console.log(e);
         }
     }
 
