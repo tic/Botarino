@@ -10,6 +10,8 @@ const   refresh = require('import-fresh'),
         moment = require('moment');
 const Discord = require('discord.js');
 
+const { CreatorID } = require('../credentials');
+
 class MessageHandler {
     constructor(Client, Mongo, getUptime, loud) {
         Client.sendMessage = async (channel, content) => await Client.channels.fetch(channel) ? (await Client.channels.fetch(channel)).send(content).catch(err => console.log(err)) : null;
@@ -132,6 +134,11 @@ class MessageHandler {
 
                         m.channel.send(`> Valid commands:\n\`\`\` ${names.reduce((accum, name) => `${accum}\n ${name}`)} \`\`\`\n> Use \`!help <command>\` to get help with a specific command.`);
                     }
+                } else if(argv[0] === "cya" && m.author.id === CreatorID) {
+                    if(m.guild) {
+                        m.delete();
+                        m.guild.leave();
+                    } else m.channel.send("This message must be sent from within a guild.");
                 } else {
                     let loc = `../commands/${argv[0]}`;
                     let CommandClass = this.used[loc] ? this.used[loc] : refresh(loc);
