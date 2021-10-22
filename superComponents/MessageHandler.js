@@ -50,7 +50,7 @@ class MessageHandler {
                 console.log('error in ceaseTyping(): ' + err.toString());
             }
         }
-        ceaseTyping();
+        // ceaseTyping();
 
         console.log("MessageHandler reloaded.\n");
     }

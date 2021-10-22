@@ -1,6 +1,7 @@
 // Having trouble deciding what to get from cookout? No longer.
 
 const Command = require("../superComponents/Command");
+const { MessageEmbed } = require("discord.js");
 const assert = require('assert');
 
 class Chooser {
@@ -106,20 +107,35 @@ class Cookout extends Command {
     }
 
     async run() {
-        let message = ``, generation = [];
+        let message = ``, generation = [], embeds = [], executed = false;
         switch(this.argv[1]) {
 
             case "jrtray":
+            executed= true;
             generation = Chooser.generate(["jrEntree", "side", "side", "drink", "shake", `toppings_${parseInt(Math.random() * Chooser.BurgerToppings.length)}`]);
             message = `> Jr. Entree: **${generation[0]}**\n${Chooser.isBurger(generation[0]) ? `> Burger toppings: **${generation[5].join(", ")}**\n` : ``}> Sides: **${generation[1] === generation[2] ? `double ${generation[1]}` : `${generation[1]} and ${generation[2]}`}**\n> Drink: **${generation[3]}**\n> Shake: **${generation[4].shake}** ${generation[4].backup ? `(seasonal backup: **${generation[4].backup}**)` : ``}\nFor this order, I recommend the ${parseInt(Math.random() * 2) ? "shake" : "drink"}.`;
             break;
 
             case "tray":
+            executed= true;
             generation = Chooser.generate(["trayEntree", "side", "side", "drink", "shake", `toppings_${parseInt(Math.random() * Chooser.BurgerToppings.length)}`]);
-            message = `> Tray Entree: **${generation[0]}**\n${Chooser.isBurger(generation[0]) ? `> Burger toppings: **${generation[5].join(", ")}**\n` : ``}> Sides: **${generation[1] === generation[2] ? `double ${generation[1]}` : `${generation[1]} and ${generation[2]}`}**\n> Drink: **${generation[3]}**\n> Shake: **${generation[4].shake}** ${generation[4].backup ? `(seasonal backup: **${generation[4].backup}**)` : ``}\nFor this order, I recommend the ${parseInt(Math.random() * 2) ? "shake" : "drink"}.`;
+            embeds.push(
+                new MessageEmbed()
+                    .setTitle("Cookout Tray")
+                    .setColor("#ff0000")
+                    .setAuthor("Cookout", "https://i.gyazo.com/7c7d82381d1799cbc60332f2dea8010a.jpg", "https://cookout.com/menu")
+                    .setDescription(`For this tray, I recommend the ${parseInt(Math.random() * 4) ? "shake" : "drink"}.`)
+                    .addFields(
+                        {name: "Entree", value: Chooser.isBurger(generation[0]) ? `${generation[0]}\nToppings: ${generation[5].join(", ")}` : generation[0]},
+                        {name: "Sides", value: generation[1] === generation[2] ? `Double ${generation[1]}` : `${generation[1]} and ${generation[2]}`},
+                        {name: "Drink", value: generation[3]},
+                        {name: "Shake", value: generation[4].backup ? `${generation[4].shake}\nSeasonal backup: *${generation[4].backup}*` : generation[4].shake}
+                    )
+            );
             break;
 
             case "burger":
+            executed= true;
             switch(this.argv[2]) {
                 case "combo":
                 generation = Chooser.generate(["burger", "side", "drink", "shake", `toppings_${parseInt(Math.random() * Chooser.BurgerToppings.length)}`]);
@@ -133,6 +149,7 @@ class Cookout extends Command {
             break;
 
             case "bbq":
+            executed= true;
             switch(this.argv[2]) {
                 case "combo":
                 generation = Chooser.generate(["bbqEntree", "side", "drink", "shake", `toppings_${parseInt(Math.random() * Chooser.BurgerToppings.length)}`]);
@@ -146,6 +163,7 @@ class Cookout extends Command {
             break;
 
             case "chicken":
+            executed= true;
             switch(this.argv[2]) {
                 case "combo":
                 generation = Chooser.generate(["chickenEntree", "side", "drink", "shake", `toppings_${parseInt(Math.random() * Chooser.BurgerToppings.length)}`]);
@@ -159,29 +177,66 @@ class Cookout extends Command {
             break;
 
             case "assorted":
+            executed= true;
             switch(this.argv[2]) {
                 case "combo":
                 generation = Chooser.generate(["oddballEntree", "side", "drink", "shake", `toppings_${parseInt(Math.random() * Chooser.BurgerToppings.length)}`]);
-                message = `> Entree: **${generation[0]}**\n${Chooser.isBurger(generation[0]) ? `> Burger toppings: **${generation[4].join(", ")}**\n` : ``}> Side: **${generation[1]}**\n> Drink: **${generation[2]}**\n> Shake: **${generation[3].shake}** ${generation[3].backup ? `(seasonal backup: **${generation[3].backup}**)` : ``}\nFor this order, I recommend the ${parseInt(Math.random() * 2) ? "shake" : "drink"}.`;
+                embeds.push(
+                    new MessageEmbed()
+                        .setTitle("Assorted Combo Meal")
+                        .setColor("#ff0000")
+                        .setAuthor("Cookout", "https://i.gyazo.com/7c7d82381d1799cbc60332f2dea8010a.jpg", "https://cookout.com/menu")
+                        .setDescription(`A randomly generated meal that follows no conventions.`)
+                        .addFields(
+                            {name: "Entree", value: Chooser.isBurger(generation[0]) ? `${generation[0]}\nToppings: ${generation[4].join(", ")}` : generation[0]},
+                            {name: "Side", value: generation[1]},
+                            {name: "Drink", value: generation[2]},
+                            {name: "Shake", value: generation[3].backup ? `${generation[3].shake}\nSeasonal backup: *${generation[3].backup}*` : generation[3].shake}
+                        )
+                );
                 break;
 
                 default:
                 generation = Chooser.generate(["oddballEntree"]);
-                message = `> Dish: **${generation[0]}**`;
+                embeds.push(
+                    new MessageEmbed()
+                        .setTitle("Assorted Entree")
+                        .setColor("#ff0000")
+                        .setAuthor("Cookout", "https://i.gyazo.com/7c7d82381d1799cbc60332f2dea8010a.jpg", "https://cookout.com/menu")
+                        .setDescription(generation[0])
+                );
             }
             break;
 
             case "shake":
+            executed= true;
             if(this.argv[2] && parseInt(this.argv[2])) {
                 let i = parseInt(this.argv[2]);
                 let genarr = []
                 while(i--) genarr.push("shake");
                 generation = Chooser.generate(genarr);
-                let mass_shake_format = generation.map(shake => `> **${shake.shake}** ${shake.backup ? `(seasonal backup: **${shake.backup}**)` : ``}`);
-                message = `Here's your list of ${this.argv[2]} shake${parseInt(this.argv[2]) > 1 ? "s" : ""}\n${mass_shake_format.join("\n")}`;
+                let mass_shake_format = generation.map(shake => `${shake.shake} ${shake.backup ? `(seasonal backup: *${shake.backup}*)` : ``}`);
+
+                embeds.push(
+                    new MessageEmbed()
+                        .setTitle("Shakes")
+                        .setColor("#ff0000")
+                        .setAuthor("Cookout", "https://i.gyazo.com/7c7d82381d1799cbc60332f2dea8010a.jpg", "https://cookout.com/menu")
+                        .setDescription(`Here's your list of ${this.argv[2]} shake${parseInt(this.argv[2]) > 1 ? "s" : ""}`)
+                        .addFields({name: "Shakes", value: mass_shake_format.join("\n")})
+                );
             } else {
                 generation = Chooser.generate(["shake"]);
-                message = `> Shake: **${generation[0].shake}** ${generation[0].backup ? `(seasonal backup: **${generation[0].backup}**)` : ``}`;
+                let embed = new MessageEmbed()
+                    .setTitle("Shake")
+                    .setColor("#ff0000")
+                    .setAuthor("Cookout", "https://i.gyazo.com/7c7d82381d1799cbc60332f2dea8010a.jpg", "https://cookout.com/menu")
+                    .setDescription(generation[0].shake)
+
+                if(generation[0].backup) {
+                    embed.addFields({name: "Seasonal Backup", value: generation[0].backup});
+                }
+                embeds.push(embed);
             }
             break;
 
@@ -203,22 +258,48 @@ class Cookout extends Command {
                     contestants.push(this.argv[contestants.length + 2]);
                 }
             }
-            contestants = contestants.map(name => {
+
+            embeds = contestants.map(name => {
                 let gen = Chooser.generate(gen_settings);
-                return `*${name}*\n> Tray Entree: **${gen[0]}**\n${Chooser.isBurger(gen[0]) ? `> Burger toppings: **${gen[5].join(", ")}**\n` : ``}> Sides: **${gen[1] === gen[2] ? `double ${gen[1]}` : `${gen[1]} and ${gen[2]}`}**\n> Drink: **${gen[3]}**\n> Shake: **${gen[4].shake}** ${gen[4].backup ? `(seasonal backup: **${gen[4].backup}**)` : ``}\nFor this order, I recommend the ${parseInt(Math.random() * 2) ? "shake" : "drink"}.\n`;
+                let embed = new MessageEmbed()
+                    .setTitle(`${name}'s Tray`)
+                    .setColor("#ff0000")
+                    .setAuthor("Cookout", "https://i.gyazo.com/7c7d82381d1799cbc60332f2dea8010a.jpg", "https://cookout.com/menu")
+                    .setDescription(`For this order, I recommend the ${parseInt(Math.random() * 4) ? "shake" : "drink"}.`)
+                    .addFields(
+                        {name: "Entree", value: Chooser.isBurger(gen[0]) ? `${gen[0]}\nToppings: ${gen[5].join(", ")}` : gen[0]},
+                        {name: "Sides", value: gen[1] === gen[2] ? `Double ${gen[1]}` : `${gen[1]} and ${gen[2]}`},
+                        {name: "Drink", value: gen[3]},
+                        {name: "Shake", value: gen[4].backup ? `${gen[4].shake}\nSeasonal backup: ${gen[4].backup}` : gen[4].shake}
+                    )
+
+                return embed;
             });
 
-            message = `\t\t**COOKOUT VS BATTLE:**\n${contestants.join("\n")}\n\n**Who won? Who's next? You decide :point_right:**`;
             break;
         }
 
-        if(this.argv[1] !== "vs") this.m.channel.send(`Picking randomly from *${this.argv[1]}*:\n${message}`);
-        else this.m.channel.send(message).then(async msg => {
-            let i = 0, nums = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
-            while(num_contestants--) {
-                if(i < nums.length) await msg.react(nums[i++]);
+        if(this.argv[1] !== "vs") {
+            if(executed === false) {
+                this.m.channel.send("Sorry, I don't understand that Cookout command. Try `!help cookout`");
+            } else {
+                this.m.channel.send(`Picking randomly from *${this.argv[1]}*`);
+                for(let i = 0; i < embeds.length; i++) {
+                    await this.m.channel.send({embed: embeds[i]});
+                }
             }
-        });
+        } else {
+            await this.m.channel.send("**COOKOUT VS BATTLE**");
+            for(let i = 0; i < embeds.length; i++) {
+                await this.m.channel.send({embed: embeds[i]});
+            }
+            this.m.channel.send("**Who won? Who's next? You decide :point_right:**").then(async msg => {
+                let i = 0, nums = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
+                while(num_contestants--) {
+                    if(i < nums.length) await msg.react(nums[i++]);
+                }
+            });
+        }
     }
 
     static help() {
