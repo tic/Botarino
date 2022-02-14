@@ -1090,7 +1090,7 @@ EPISODES = [
     },
 ]
 
-const formatNum = num => num < 10 ? `0${num}` : num;
+const formatNum = num => num < 10 ? `0${Math.round(num)}` : Math.round(num);
 
 class Episode extends Command {
     constructor(Client, m, argv, Mongo, uptime) {
@@ -1103,6 +1103,7 @@ class Episode extends Command {
     async run() {
         switch(this.argv[1]) {
             case undefined:
+                console.log(this.uptime);
                 const watchedSeconds = this.uptime("seconds");
                 const loops = parseInt(watchedSeconds / SEINFELD_SECONDS);
                 let progress = watchedSeconds % SEINFELD_SECONDS;

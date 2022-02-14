@@ -43,7 +43,7 @@ class UptimeTicker {
         const timePassed = (new Date()).getTime() - this.startupTime;
         const days = parseInt(timePassed / 86400000);
         const hours = parseInt((timePassed % 86400000) / 3600000);
-        let timeStr = `${days > 0 ? `${days}d` : ""}${UptimeTicker.expander(hours)}h`;
+        let timeStr = `Seinfeld for ${days > 0 ? `${days}d` : ""}${UptimeTicker.expander(hours)}h`;
         this.update(timeStr, this.statusOptions);
     }
 
