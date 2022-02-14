@@ -4,18 +4,14 @@
 class UptimeTicker {
     constructor(update) {
         this.update = update;
-        this.seconds = 0;
-        this.minutes = 0;
-        this.hours = 0;
+        this.startupTime = (new Date()).getTime();
 
-        this.status = "Seinfeld | $Hh$Mm";
         this.statusOptions = {type: "WATCHING"};
 
         this.tick();
-        this.intervalID = setInterval(this.tick.bind(this), 1000);
+        this.intervalID = setInterval(this.tick.bind(this), 3600000);
     }
 
-    static INTERVAL = 60;
     static expander = n => n.toString().length !== 1 ? n.toString() : `0${n}`;
 
     cease() {
@@ -24,30 +20,35 @@ class UptimeTicker {
     }
 
     getUptime(type) {
-        if(type === "seconds") return this.seconds + this.minutes * 60 + this.hours * 3600;
-        if(type === "all") return [this.hours, this.minutes, this.seconds];
-        else return `${UptimeTicker.expander(this.hours)}:${UptimeTicker.expander(this.minutes)}:${UptimeTicker.expander(this.seconds)}`;
+        if(type === "seconds") return ((new Date()).getTime() - this.startupTime) / 1000;
+        if(type === "all") {
+            const timePassed = (new Date()).getTime() - this.startupTime;
+            return [
+                parseInt(timePassed / 3600000),
+                parseInt((timePassed % 3600000) / 60000),
+                parseInt((timePassed % 60000) / 1000)
+            ];
+        }
+        else {
+            const timePassed = (new Date()).getTime() - this.startupTime;
+            const hours = parseInt(timePassed / 3600000);
+            const minutes = parseInt((timePassed % 3600000) / 60000);
+            const seconds = parseInt((timePassed % 60000) / 1000);
+
+            return `${UptimeTicker.expander(hours)}:${UptimeTicker.expander(minutes)}:${UptimeTicker.expander(seconds)}`;
+        }
     }
 
     async updateStatus() {
-        let formatted = this.status.replace("$H", UptimeTicker.expander(this.hours));
-        formatted = formatted.replace("$M", UptimeTicker.expander(this.minutes));
-        formatted = formatted.replace("$S", UptimeTicker.expander(this.seconds));
-        this.update(formatted, this.statusOptions);
+        const timePassed = (new Date()).getTime() - this.startupTime;
+        const days = parseInt(timePassed / 86400000);
+        const hours = parseInt((timePassed % 86400000) / 3600000);
+        let timeStr = `${days > 0 ? `${days}d` : ""}${UptimeTicker.expander(hours)}h`;
+        this.update(timeStr, this.statusOptions);
     }
 
     tick() {
-        if(this.seconds % UptimeTicker.INTERVAL === 0) this.updateStatus();
-
-        this.seconds++;
-        if(this.seconds === 60) {
-            this.seconds = 0;
-            this.minutes++;
-            if(this.minutes === 60) {
-                this.minutes = 0;
-                this.hours++;
-            }
-        }
+        this.updateStatus();
     }
 
 }
