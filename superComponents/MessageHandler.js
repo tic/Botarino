@@ -9,8 +9,9 @@ const   refresh = require('import-fresh'),
         fs = require('fs'),
         moment = require('moment');
 const Discord = require('discord.js');
+const { MusicBot } = require("discord-music-system");
 
-const { CreatorID } = require('../credentials');
+const { CreatorID, YTAPIKEY } = require('../credentials');
 
 class MessageHandler {
     constructor(Client, Mongo, getUptime, loud) {
@@ -20,6 +21,12 @@ class MessageHandler {
         this.used = {};
         this.Mongo = Mongo;
         this.getUptime = getUptime;
+
+        Client.MusicBot = new MusicBot(Client, {
+            ytApiKey: YTAPIKEY,
+            prefix: "!",
+            language: "en"
+        });
 
         this.gifs = [];
         this.loadGIFs(Mongo);
@@ -125,7 +132,8 @@ class MessageHandler {
                         let CommandClass = this.used[loc] ? this.used[loc] : refresh(loc);
                         this.used[loc] = CommandClass;
 
-                        m.channel.send(CommandClass.help());
+                        const commandHelp = CommandClass.help(Discord.MessageEmbed);
+                        m.channel.send(commandHelp);
                     } else {
                         // General help requested. Get a list of commands in the directory!
                         let files = fs.readdirSync('./commands/', {withFileTypes: true});
