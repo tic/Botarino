@@ -17,7 +17,12 @@ export class Semaphore {
       });
     }
     this.#p--;
+    let resolved = false;
     const resolvingFunction = () => {
+      if (resolved) {
+        return;
+      }
+      resolved = true;
       const waitingResolver = this.#waitingResolvers.shift();
       if (waitingResolver) {
         waitingResolver(resolvingFunction);
