@@ -38,5 +38,6 @@ export type DiscordActionType = {
   payload: MessagePayload;
 } | {
   actionType: DiscordActionTypeEnum.DELETE_MESSAGE;
+  channelId: string;
   messageId: string;
 }
