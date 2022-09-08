@@ -11,12 +11,14 @@ import {
   Client,
   ClientOptions,
   Intents,
+  Message,
   MessageEmbed,
   MessagePayload,
   TextChannel,
 } from 'discord.js';
 import { config } from '../config';
 import { DiscordActionType } from '../types/serviceDiscordTypes';
+import { parseArguments } from './argumentParser.service';
 import { Semaphore } from './util.service';
 
 const options: ClientOptions = {
@@ -58,4 +60,12 @@ export const initialize = () => {
   //   logMessage('service.discord.initialize', `${config.discord.username} has logged in.`);
   //   throttleMessages();
   // });
+};
+
+export const parseMessage = (message: Message) => {
+  const isCommand = message.content.length > 1 && message.content[0] === config.discord.prefix;
+  return {
+    isCommand,
+    arguments: isCommand ? parseArguments(message) : null,
+  };
 };

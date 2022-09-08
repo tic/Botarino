@@ -40,6 +40,7 @@ export const getConfig = () => {
           : prodDiscordServerConfig
         ) as unknown as DiscordServerType[],
       identifier: 'service_discord',
+      prefix: '!',
     },
     mongo: {
       url: env('MONGO_URL'),
@@ -47,6 +48,9 @@ export const getConfig = () => {
       username: env('MONGO_USERNAME'),
       password: env('MONGO_PASSWORD'),
       identifier: 'service_mongo',
+    },
+    hypervisor: {
+      identifier: 'service_hypervisor',
     },
   };
 

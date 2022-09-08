@@ -10,18 +10,33 @@ export enum InteractionSourceEnum {
   WAIT_FOR_MESSAGE_REACTION = 3,
 }
 
+export type InteractionType = {
+  interactionSource: InteractionSourceEnum;
+  requirePrefix?: string;
+  userId?: string;
+  channelId?: string;
+  messageId?: string;
+  validator?: (arg: Message) => boolean;
+}
+
+export type InteractionResolution = {
+  /* True only if the promise was resolved by timeout */
+  timeout: boolean;
+
+  /* True unless a promise was unexpectedly rejected */
+  success: boolean;
+
+  /* Message content (exists only if success === true) */
+  content?: Message;
+}
+
+export type ResolvingFunction = (arg0: InteractionResolution) => void;
+
 export type PendingInteractionType = {
-  interactionSource: InteractionSourceEnum.WAIT_FOR_MESSAGE_FROM_USER;
-  requirePrefix: boolean;
-  userId: string;
-} | {
-  interactionSource: InteractionSourceEnum.WAIT_FOR_MESSAGE_FROM_CHANNEL;
-  requirePrefix: boolean;
-  channelId: string;
-} | {
-  interactionSource: InteractionSourceEnum.WAIT_FOR_MESSAGE_CUSTOM_CRITERIA;
-  validator: (arg0: Message) => boolean;
-} | {
-  interactionSource: InteractionSourceEnum.WAIT_FOR_MESSAGE_REACTION;
-  messageId: string;
+  id: string;
+  interaction: InteractionType;
+  resolver: ResolvingFunction;
+  started: number;
+  blocking: boolean;
+  blockable: boolean;
 }
