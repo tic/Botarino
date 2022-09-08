@@ -11,7 +11,7 @@ import {
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
 import { collections } from './database.service';
 import { parseMessage } from './discord.service';
-import { logError } from './logger.service';
+import { logError, logMessage } from './logger.service';
 import { Semaphore } from './util.service';
 import Command from './command.service';
 
@@ -24,7 +24,7 @@ export const interaction = async (
   blockable: boolean,
 ) : Promise<InteractionResolution> => {
   const callTime = new Date().getTime();
-  const interactionId = Buffer.from(String(callTime + Math.round(Math.random() * 10000)), 'ascii').toString('hex');
+  const interactionId = Buffer.from(`${callTime}N${Math.round(Math.random() * 10000)}`, 'ascii').toString('hex');
   const interactionPromise = new Promise((resolve: ResolvingFunction) => {
     interactionLock.acquire().then((release) => {
       try {
@@ -121,12 +121,17 @@ export const hypervisor = async (message: Message) => {
   }
 
   if (interactionsToFulfill.length > 0) {
+    logMessage(
+      'service_hypervisor',
+      `fulfilling ${interactionsToFulfill.length} pending interaction${interactionsToFulfill.length === 1 ? '' : 's'}`,
+    );
     interactionsToFulfill.forEach((interactionItem) => interactionItem.resolver({
       timeout: false,
       success: true,
       content: message,
     }));
   } else if (classification.isCommand) {
+    logMessage('service_hypervisor', `no pending interactions for command ${classification.arguments.basicParse[0]}`);
     await Command.runCommand(classification.arguments.basicParse[0], classification.arguments, message);
   }
 };
