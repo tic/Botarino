@@ -4,7 +4,6 @@ import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 
 const echo: CommandExecutor = async (args, message) => {
-  // Add a message to the Discord action queue
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
     payload: new MessagePayload(

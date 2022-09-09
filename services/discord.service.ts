@@ -42,60 +42,70 @@ const executeAction = async (action: DiscordActionType) => {
   if (action.actionType === DiscordActionTypeEnum.SEND_MESSAGE) {
     const targetChannel = action.payload.target as TextChannel;
     const { send } = targetChannel;
-    if (send) {
-      if (targetChannel.permissionsFor(client.user).has(Permissions.FLAGS.SEND_MESSAGES)) {
-        await send(action.payload);
-      } else {
-        logError(
-          LogCategoriesEnum.DISCORD_PERMISSION_ERROR,
-          config.discord.identifier,
-          `expected permission to send messages in channel ${targetChannel.id}`,
-        );
-      }
-    } else {
+
+    if (!send) {
       logError(
         LogCategoriesEnum.DISCORD_ERROR,
         config.discord.identifier,
         'invalid send function for submitted discord action',
       );
+      return;
     }
+
+    if (!targetChannel.permissionsFor(client.user).has(Permissions.FLAGS.SEND_MESSAGES)) {
+      logError(
+        LogCategoriesEnum.DISCORD_PERMISSION_ERROR,
+        config.discord.identifier,
+        `expected permission to send messages in channel ${targetChannel.id}`,
+      );
+      return;
+    }
+
+    await send(action.payload);
   } else if (action.actionType === DiscordActionTypeEnum.DELETE_MESSAGE) {
     const targetChannel: AnyChannel = client.channels.cache[action.channelId];
-    if (targetChannel.isText()) {
-      const { permissionsFor } = (targetChannel as TextChannel);
-      if (permissionsFor && permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_MESSAGES)) {
-        const targetMessage = await targetChannel.messages.fetch(action.messageId);
-        if (targetMessage) {
-          if (targetMessage.deletable) {
-            await targetMessage.delete();
-          } else {
-            logError(
-              LogCategoriesEnum.DISCORD_ERROR,
-              config.discord.identifier,
-              `target message ${action.messageId} in channel ${action.channelId} is marked undeletable`,
-            );
-          }
-        } else {
-          logError(
-            LogCategoriesEnum.DISCORD_ERROR,
-            config.discord.identifier,
-            `failed to locate message ${action.messageId} in channel ${action.channelId}`,
-          );
-        }
-      } else {
-        logError(
-          LogCategoriesEnum.DISCORD_ERROR,
-          config.discord.identifier,
-          `expected permission to delete messages in channel ${targetChannel.id}`,
-        );
-      }
-    } else {
+    if (!targetChannel.isText()) {
       logError(
         LogCategoriesEnum.DISCORD_ERROR,
         config.discord.identifier,
         `expected channel ${action.channelId} to be a text channel`,
       );
+      return;
     }
+
+    const targetTextChannel = targetChannel as TextChannel;
+    const { permissionsFor } = targetTextChannel;
+
+    if (!permissionsFor || !permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_MESSAGES)) {
+      logError(
+        LogCategoriesEnum.DISCORD_ERROR,
+        config.discord.identifier,
+        `expected permission to delete messages in channel ${targetTextChannel.id}`,
+      );
+      return;
+    }
+
+    const targetMessage = await targetTextChannel.messages.fetch(action.messageId);
+
+    if (!targetMessage) {
+      logError(
+        LogCategoriesEnum.DISCORD_ERROR,
+        config.discord.identifier,
+        `failed to locate message ${action.messageId} in channel ${action.channelId}`,
+      );
+      return;
+    }
+
+    if (!targetMessage.deletable) {
+      logError(
+        LogCategoriesEnum.DISCORD_ERROR,
+        config.discord.identifier,
+        `target message ${action.messageId} in channel ${action.channelId} is marked undeletable`,
+      );
+      return;
+    }
+
+    await targetMessage.delete();
   }
 };
 
