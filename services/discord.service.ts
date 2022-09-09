@@ -167,3 +167,5 @@ export const parseMessage = (message: Message) => {
     arguments: isCommand ? parseArguments(message) : null,
   };
 };
+
+export const getClientId = () => client.user.id;
