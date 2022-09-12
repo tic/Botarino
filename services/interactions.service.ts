@@ -13,7 +13,7 @@ import { collections } from './database.service';
 import { parseMessage } from './discord.service';
 import { logError, logMessage } from './logger.service';
 import { Semaphore } from './util.service';
-import Command from './command.service';
+import { runCommand } from './command.service';
 
 const interactionLock = new Semaphore(1);
 const pendingInteractions: PendingInteractionType[] = [];
@@ -132,6 +132,6 @@ export const hypervisor = async (message: Message) => {
     }));
   } else if (classification.isCommand) {
     logMessage('service_hypervisor', `no pending interactions for command ${classification.arguments.basicParse[0]}`);
-    await Command.runCommand(classification.arguments.basicParse[0], classification.arguments, message);
+    await runCommand(classification.arguments.basicParse[0], classification.arguments, message);
   }
 };

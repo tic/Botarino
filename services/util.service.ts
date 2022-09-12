@@ -38,3 +38,6 @@ export const sleep = (ms: number) => new Promise((_resolve) => {
   const resolve = _resolve as () => void;
   setTimeout(() => resolve(), ms);
 });
+
+// eslint-disable-next-line no-unused-vars
+export const selectRandomElement: (<T>(_: Array<T>) => T) = (arr) => arr[Math.floor(Math.random() * arr.length)];

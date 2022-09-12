@@ -17,7 +17,7 @@ const commandControllers: CommandControllerWithNameType[] = readdirSync('../comm
   // eslint-disable-next-line import/no-dynamic-require, global-require
   .map((file) => ({ name: file.slice(0, -3), controller: require(`../commands/${file}`) }));
 
-const controllerLookupMap: Record<string, CommandControllerType> = commandControllers.reduce(
+export const controllerLookupMap: Record<string, CommandControllerType> = commandControllers.reduce(
   (acc, cur) => {
     acc[cur.name] = cur.controller;
     return acc;
@@ -25,7 +25,7 @@ const controllerLookupMap: Record<string, CommandControllerType> = commandContro
   {},
 );
 
-const runCommand = async (command: string, args: Arguments, sourceMessage: Message) => {
+export const runCommand = async (command: string, args: Arguments, sourceMessage: Message) => {
   let commandSuccess = true;
   const commandStarted = new Date().getTime();
 
@@ -57,9 +57,4 @@ const runCommand = async (command: string, args: Arguments, sourceMessage: Messa
   } catch (error) {
     logError(LogCategoriesEnum.STATISTICS_FAILURE, config.hypervisor.identifier, String(error));
   }
-};
-
-export default {
-  runCommand,
-  controllerLookupMap,
 };
