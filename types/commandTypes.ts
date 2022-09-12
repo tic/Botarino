@@ -11,6 +11,9 @@ export type CommandControllerType = {
   /* Describe the purpose of the command. */
   description: string;
 
-  /* Provide sample command usage. '$!$' will be replaced by arg[0], e.g. '!echo'. */
+  /* Provide expected command syntax. '$!$' will be replaced by arg[0], e.g. '!echo'. */
   help: string;
+
+  /* Optionally provide examples of commands */
+  examples?: { example: string, description: string }[];
 }

@@ -13,5 +13,5 @@ const executor: CommandExecutor = async (args, message) => {
 export default {
   executor,
   description: 'Sends a message containing whatever the user supplies as arguments.',
-  help: '`$!$ <string>',
+  help: '`$!$ <string[phrase to repeat]>',
 } as CommandControllerType;
