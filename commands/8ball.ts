@@ -38,5 +38,5 @@ const executor: CommandExecutor = async (_, { channel }) => {
 export default {
   executor,
   description: 'It\'s a magic 8 ball. Just ask a question!',
-  help: '`$!$ <question>',
+  help: '`$!$ <string[Question to ask the 8 ball]>',
 } as CommandControllerType;

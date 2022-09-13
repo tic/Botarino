@@ -174,7 +174,7 @@ export const parseMessage = (message: Message) => {
   const isCommand = message.content.length > 1 && message.content[0] === config.discord.prefix;
   return {
     isCommand,
-    arguments: isCommand ? parseArguments(message) : null,
+    arguments: isCommand ? parseArguments(message.content) : null,
   };
 };
 

@@ -1,9 +1,28 @@
-import { Message } from 'discord.js';
-import { Arguments } from '../types/serviceArgumentParserTypes';
+import { config } from '../config';
+import { ArgumentDescription, Arguments, SyntaxDescription } from '../types/serviceArgumentParserTypes';
 
-// eslint-disable-next-line import/prefer-default-export
-export const parseArguments = (message: Message) : Arguments => {
-  const withoutPrefix = message.content.substring(1);
+export const parseSyntaxDescriptionFromHelpString = (commandName: string, helpString: string) : SyntaxDescription => {
+  const callSyntax = `${config.discord.prefix}${commandName}`;
+  const argumentDescriptions = Array.from(helpString.matchAll(/<([^<>]+)>/g)).map((matches) => {
+    const arg = matches[1];
+    const [, typeAndDefault, description] = arg.match(/([^[\]]+)\[([^[\]]*)\]/) || [null, '', ''];
+    const [, optionalFlag, datatypes, defaultValue] = typeAndDefault
+      ?.match(/(\?)?([^:]+)([^[\]]*)\[([^[\]]+)\]/) || [null, '', '', undefined];
+    return {
+      required: !optionalFlag,
+      description: description || '',
+      defaultValue: defaultValue || undefined,
+      datatypes: datatypes?.split('|') || [],
+    } as ArgumentDescription;
+  });
+  return {
+    callSyntax,
+    arguments: argumentDescriptions,
+  };
+};
+
+export const parseArguments = (message: string) : Arguments => {
+  const withoutPrefix = message.substring(1);
   const basicParse = withoutPrefix.split(' ');
   const args = {
     raw: withoutPrefix,

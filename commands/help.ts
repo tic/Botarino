@@ -3,11 +3,7 @@ import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
 import { controllerLookupMap } from '../services/command.service';
 import { buildBasicMessage, dispatchAction } from '../services/discord.service';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
-
-export const formatCommandHelpString = (helpString: string) : string => {
-  console.log(helpString);
-  return helpString;
-};
+import { parseSyntaxDescriptionFromHelpString } from '../services/argumentParser.service';
 
 const executor: CommandExecutor = async (args, message) => {
   // Help called by itself: !help
@@ -16,7 +12,8 @@ const executor: CommandExecutor = async (args, message) => {
     return;
   }
 
-  const commandController = controllerLookupMap[args.basicParse[0]];
+  const commandName = args.basicParse[0];
+  const commandController = controllerLookupMap[commandName];
 
   // Help called on a non-existent command: !help diddlyDoodly
   if (!commandController) {
@@ -28,8 +25,8 @@ const executor: CommandExecutor = async (args, message) => {
   }
 
   // Help called on an actual command: !help echo
-  const helpString = formatCommandHelpString(commandController.help);
-  console.log(helpString);
+  const syntax = parseSyntaxDescriptionFromHelpString(commandName, commandController.help);
+  console.log(syntax);
 };
 
 export default {
