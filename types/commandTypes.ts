@@ -27,5 +27,12 @@ export type CommandControllerType = {
 export const createRegexValidator = (regex: RegExp) => (args: Arguments) => !!args.rawWithoutCommand.match(regex);
 
 export const createVisibilityFilter = (whitelist: string[], blacklist: string[]) => (channel: AnyChannel) => {
+  if (!channel.isText) {
+    return false;
+  }
 
+  const { id } = channel;
+  const passedWhitelist = whitelist.length > 0 ? whitelist.includes(id) : true;
+  const passedBlacklist = !blacklist.includes(id);
+  return passedWhitelist && passedBlacklist;
 };
