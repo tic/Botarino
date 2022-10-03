@@ -41,7 +41,7 @@ const pendingActions: DiscordActionType[] = [];
 const executeAction = async (action: DiscordActionType) => {
   if (action.actionType === DiscordActionTypeEnum.SEND_MESSAGE) {
     const targetChannel = action.payload.target as TextChannel;
-    const { send } = targetChannel;
+    const send = (client.channels.cache.get(targetChannel.id) as TextChannel)?.send;
 
     if (!send) {
       logError(
@@ -61,7 +61,7 @@ const executeAction = async (action: DiscordActionType) => {
       return;
     }
 
-    await send(action.payload);
+    await targetChannel.send(action.payload);
   } else if (action.actionType === DiscordActionTypeEnum.DELETE_MESSAGE) {
     const targetChannel: AnyChannel = client.channels.cache[action.channelId];
     if (!targetChannel.isText()) {
@@ -179,3 +179,5 @@ export const parseMessage = (message: Message) => {
 };
 
 export const getClientId = () => client.user.id;
+
+export const setHandler = (event, listener) => client.on(event, listener);

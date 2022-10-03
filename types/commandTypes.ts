@@ -1,7 +1,7 @@
-import { Message } from 'discord.js';
+/* eslint-disable no-unused-vars */
+import { AnyChannel, Message } from 'discord.js';
 import { Arguments } from './serviceArgumentParserTypes';
 
-// eslint-disable-next-line no-unused-vars
 export type CommandExecutor = (arg0: Arguments, arg1: Message) => Promise<void>;
 
 export type CommandControllerType = {
@@ -16,4 +16,16 @@ export type CommandControllerType = {
 
   /* Optionally provide examples of commands */
   examples?: { example: string, description: string }[];
+
+  /* Optionally provide a validator function to run before executing */
+  validator?: (arg0: Arguments) => boolean;
+
+  /* Optionally provide a function to determine whether the command is available in the given context */
+  isVisible?: (channel: AnyChannel) => boolean;
 }
+
+export const createRegexValidator = (regex: RegExp) => (args: Arguments) => !!args.rawWithoutCommand.match(regex);
+
+export const createVisibilityFilter = (whitelist: string[], blacklist: string[]) => (channel: AnyChannel) => {
+
+};

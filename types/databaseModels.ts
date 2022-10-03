@@ -31,6 +31,7 @@ export interface commandEngagement extends databaseItem {
   args: string;
   succeeded: boolean;
   elapsedTimeMs: number;
+  executionComment: string;
 }
 
 export interface gifEngagement extends databaseItem {

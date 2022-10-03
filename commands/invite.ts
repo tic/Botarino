@@ -15,5 +15,5 @@ const executor: CommandExecutor = async (args, message) => {
 export default {
   executor,
   description: 'Generates the URL required to add a bot to a Discord server.',
-  help: '`$!$ <?botClientId:selfClientId>',
+  help: '`$!$ <?string:my client id[client id of the bot to add]>',
 } as CommandControllerType;

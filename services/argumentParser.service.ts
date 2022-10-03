@@ -7,11 +7,11 @@ export const parseSyntaxDescriptionFromHelpString = (commandName: string, helpSt
     const arg = matches[1];
     const [, typeAndDefault, description] = arg.match(/([^[\]]+)\[([^[\]]*)\]/) || [null, '', ''];
     const [, optionalFlag, datatypes, defaultValue] = typeAndDefault
-      ?.match(/(\?)?([^:]+)([^[\]]*)\[([^[\]]+)\]/) || [null, '', '', undefined];
+      ?.match(/(\?)?([^:]+)(.*)/) || [null, '', '', undefined];
     return {
       required: !optionalFlag,
       description: description || '',
-      defaultValue: defaultValue || undefined,
+      defaultValue: defaultValue ? defaultValue.substring(1) : undefined,
       datatypes: datatypes?.split('|') || [],
     } as ArgumentDescription;
   });
