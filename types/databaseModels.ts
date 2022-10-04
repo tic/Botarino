@@ -38,6 +38,13 @@ export interface gifEngagement extends databaseItem {
   serverId: string;
   channelId: string;
   userId: string;
-  gifId: string;
+  gifId: string | ObjectId;
   timestamp: number;
+}
+
+export interface gifItem extends databaseItem {
+  gifSourceUrl: string;
+  messageTemplate: string;
+  awardCount: number;
+  relativeProbability: number;
 }
