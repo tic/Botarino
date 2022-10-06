@@ -1,7 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 
-import { Message, MessagePayload } from 'discord.js';
+import { MessagePayload, PresenceData } from 'discord.js';
 
 export enum ChannelClassEnum {
   GENERAL_UPDATES = 'GENERAL_UPDATES',
@@ -31,6 +31,7 @@ export enum DiscordActionTypeEnum {
   REMOVE_REACTION = 3,
   JOIN_VOICE_CHANNEL = 4,
   LEAVE_VOICE_CHANNEL = 5,
+  SET_PRESENCE = 6,
 }
 
 export type DiscordActionType = {
@@ -40,4 +41,7 @@ export type DiscordActionType = {
   actionType: DiscordActionTypeEnum.DELETE_MESSAGE;
   channelId: string;
   messageId: string;
+} | {
+  actionType: DiscordActionTypeEnum.SET_PRESENCE;
+  presence: PresenceData;
 }

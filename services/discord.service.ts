@@ -1,12 +1,3 @@
-// Need an action queue
-// Supported actions:
-//  - Send message
-//  - Delete message
-//  - Add reaction
-//  - Remove reaction
-//  - Join voice channel
-//  - Leave voice channel
-
 import {
   Client,
   ClientOptions,
@@ -18,9 +9,11 @@ import {
   Permissions,
   AnyChannel,
 } from 'discord.js';
+import { readdirSync } from 'fs';
 import { config } from '../config';
 import { DiscordActionType, DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
+import { ModuleControllerType } from '../types/serviceModulesTypes';
 import { parseArguments } from './argumentParser.service';
 import { logError, logMessage } from './logger.service';
 import { Semaphore, sleep } from './util.service';
@@ -37,6 +30,24 @@ const client = new Client(options);
 const executeSemaphore = new Semaphore(1);
 const actionSemaphore = new Semaphore(1);
 const pendingActions: DiscordActionType[] = [];
+
+const launchModules = async () => {
+  const modules = readdirSync('./modules')
+  // eslint-disable-next-line import/no-dynamic-require, global-require
+    .map((file) => (file.endsWith('.ts') ? require(`../modules/${file}`).default : null))
+    .filter((controller) => controller !== null) as ModuleControllerType[];
+
+  await Promise.all(
+    modules.map(async (module) => {
+      const sourceName = `module_${module.name.replace(/\s/g, '-')}`;
+      logMessage(sourceName, 'initializing module');
+      await module.setup();
+
+      logMessage(sourceName, 'starting module');
+      module.run();
+    }),
+  );
+};
 
 const executeAction = async (action: DiscordActionType) => {
   if (action.actionType === DiscordActionTypeEnum.SEND_MESSAGE) {
@@ -106,6 +117,8 @@ const executeAction = async (action: DiscordActionType) => {
     }
 
     await targetMessage.delete();
+  } else if (action.actionType === DiscordActionTypeEnum.SET_PRESENCE) {
+    client.user.setPresence(action.presence);
   }
 };
 
@@ -152,8 +165,9 @@ export const dispatchAction = async (action: DiscordActionType) => {
 
 export const initialize = () => {
   client.login(config.discord.secret);
-  client.on('ready', () => {
+  client.on('ready', async () => {
     logMessage('service.discord.initialize', `${client.user.tag} has logged in.`);
+    await launchModules();
     executeActions();
   });
 };
