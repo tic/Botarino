@@ -82,3 +82,11 @@ export const logMessage = async (source: string, message: string) : Promise<bool
     );
   });
 };
+
+export const getErrorLogger = (src: string) => ({
+  log: (ctg: LogCategoriesEnum, msg?: string) => logError(ctg, src, msg),
+});
+
+export const getLogger = (src: string) => ({
+  log: (msg: string) => logMessage(src, msg),
+});

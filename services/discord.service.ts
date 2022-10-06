@@ -15,8 +15,11 @@ import { DiscordActionType, DiscordActionTypeEnum } from '../types/serviceDiscor
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
 import { ModuleControllerType } from '../types/serviceModulesTypes';
 import { parseArguments } from './argumentParser.service';
-import { logError, logMessage } from './logger.service';
+import { getErrorLogger, getLogger, logMessage } from './logger.service';
 import { Semaphore, sleep } from './util.service';
+
+const logger = getLogger(config.discord.identifier);
+const errorLogger = getErrorLogger(config.discord.identifier);
 
 const options: ClientOptions = {
   intents: new Intents()
@@ -55,18 +58,16 @@ const executeAction = async (action: DiscordActionType) => {
     const send = (client.channels.cache.get(targetChannel.id) as TextChannel)?.send;
 
     if (!send) {
-      logError(
+      errorLogger.log(
         LogCategoriesEnum.DISCORD_ERROR,
-        config.discord.identifier,
         'invalid send function for submitted discord action',
       );
       return;
     }
 
     if (!targetChannel.permissionsFor(client.user).has(Permissions.FLAGS.SEND_MESSAGES)) {
-      logError(
+      errorLogger.log(
         LogCategoriesEnum.DISCORD_PERMISSION_ERROR,
-        config.discord.identifier,
         `expected permission to send messages in channel ${targetChannel.id}`,
       );
       return;
@@ -76,9 +77,8 @@ const executeAction = async (action: DiscordActionType) => {
   } else if (action.actionType === DiscordActionTypeEnum.DELETE_MESSAGE) {
     const targetChannel: AnyChannel = client.channels.cache[action.channelId];
     if (!targetChannel.isText()) {
-      logError(
+      errorLogger.log(
         LogCategoriesEnum.DISCORD_ERROR,
-        config.discord.identifier,
         `expected channel ${action.channelId} to be a text channel`,
       );
       return;
@@ -88,9 +88,8 @@ const executeAction = async (action: DiscordActionType) => {
     const { permissionsFor } = targetTextChannel;
 
     if (!permissionsFor || !permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_MESSAGES)) {
-      logError(
+      errorLogger.log(
         LogCategoriesEnum.DISCORD_ERROR,
-        config.discord.identifier,
         `expected permission to delete messages in channel ${targetTextChannel.id}`,
       );
       return;
@@ -99,18 +98,16 @@ const executeAction = async (action: DiscordActionType) => {
     const targetMessage = await targetTextChannel.messages.fetch(action.messageId);
 
     if (!targetMessage) {
-      logError(
+      errorLogger.log(
         LogCategoriesEnum.DISCORD_ERROR,
-        config.discord.identifier,
         `failed to locate message ${action.messageId} in channel ${action.channelId}`,
       );
       return;
     }
 
     if (!targetMessage.deletable) {
-      logError(
+      errorLogger.log(
         LogCategoriesEnum.DISCORD_ERROR,
-        config.discord.identifier,
         `target message ${action.messageId} in channel ${action.channelId} is marked undeletable`,
       );
       return;
@@ -139,9 +136,8 @@ const executeActions = async () => {
         try {
           executeAction(action);
         } catch (error) {
-          logError(
+          errorLogger.log(
             LogCategoriesEnum.DISCORD_ERROR,
-            config.discord.identifier,
             `failed action of type ${String(action.actionType)}`,
           );
         }
@@ -166,7 +162,7 @@ export const dispatchAction = async (action: DiscordActionType) => {
 export const initialize = () => {
   client.login(config.discord.secret);
   client.on('ready', async () => {
-    logMessage('service.discord.initialize', `${client.user.tag} has logged in.`);
+    logger.log(`${client.user.tag} has logged in.`);
     await launchModules();
     executeActions();
   });

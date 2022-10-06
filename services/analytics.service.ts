@@ -1,9 +1,14 @@
 import { Message } from 'discord.js';
-import { serverEngagement } from '../types/databaseModels';
+import { commandEngagement, serverEngagement } from '../types/databaseModels';
 import { AnalyticsTypesEnum } from '../types/serviceAnalyticsTypes';
+import { Arguments } from '../types/serviceArgumentParserTypes';
+import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
 import { collections } from './database.service';
+import { getErrorLogger } from './logger.service';
 
-export const analyticsMessagePosted = async (message: Message) => {
+const errorLogger = getErrorLogger('service_analytics');
+
+export const messagePosted = async (message: Message) => {
   const engagement: serverEngagement = {
     engagementType: AnalyticsTypesEnum.NEW_MESSAGE,
     channelId: message.channelId,
@@ -15,6 +20,26 @@ export const analyticsMessagePosted = async (message: Message) => {
   await collections.serverEngagements.insertOne(engagement);
 };
 
-export const analyticsCommandUsed = async () => {
+export const commandUsed = async (
+  command: string,
+  args: Arguments,
+  succeeded: boolean,
+  startTime: number,
+  comment: string,
+  message: Message,
+) => {
+  const result = await collections.commandStats.insertOne({
+    serverId: message.inGuild ? message.guildId : null,
+    channelId: message.channelId,
+    invokerId: message.author.id,
+    command,
+    args: args.raw,
+    succeeded,
+    elapsedTimeMs: new Date().getTime() - startTime,
+    executionComment: comment && comment.length > 0 ? comment : null,
+  } as commandEngagement);
 
+  if (!result.insertedId) {
+    errorLogger.log(LogCategoriesEnum.STATISTICS_FAILURE, 'failed to log command engagement');
+  }
 };

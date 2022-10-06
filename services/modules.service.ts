@@ -7,12 +7,13 @@ import { sleep } from './util.service';
 const moduleControllers: ModuleControllerType[] = [gifModule];
 
 const runModules = () => moduleControllers.forEach(async (controller) => {
+  const identifier = `service_module_${controller.name}`;
   let configuration = null;
   try {
     logMessage('service_modules', `setting up module ${controller.name}`);
     configuration = await controller.setup();
   } catch (error) {
-    logError(LogCategoriesEnum.MODULE_INITIALIZATION_FAILURE, `service_modules_${controller.name}`, String(error));
+    logError(LogCategoriesEnum.MODULE_INITIALIZATION_FAILURE, identifier, String(error));
   }
 
   let consecutiveErrors = 0;
@@ -20,16 +21,16 @@ const runModules = () => moduleControllers.forEach(async (controller) => {
   while (true) {
     try {
       // eslint-disable-next-line no-await-in-loop
-      await controller.run(...configuration);
+      await controller.run(configuration);
       consecutiveErrors = 0;
     } catch (error) {
       consecutiveErrors++;
-      logError(LogCategoriesEnum.MODULE_RUN_FAILURE, `service_module_${controller.name}`, String(error));
+      logError(LogCategoriesEnum.MODULE_RUN_FAILURE, identifier, String(error));
 
       if (consecutiveErrors === 10) {
         logError(
           LogCategoriesEnum.MODULE_RUN_FAILURE,
-          `service_module_${controller.name}`,
+          identifier,
           '10 consecutive failures; aborting module',
         );
         return;

@@ -11,9 +11,12 @@ import {
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
 import { collections } from './database.service';
 import { parseMessage } from './discord.service';
-import { logError, logMessage } from './logger.service';
+import { getErrorLogger, getLogger } from './logger.service';
 import { Semaphore } from './util.service';
 import { runCommand } from './command.service';
+
+const logger = getLogger(config.hypervisor.identifier);
+const errorLogger = getErrorLogger(config.hypervisor.identifier);
 
 const interactionLock = new Semaphore(1);
 const pendingInteractions: PendingInteractionType[] = [];
@@ -79,7 +82,7 @@ export const hypervisor = async (message: Message) => {
       username: message.author.username,
     } as serverEngagement);
   } catch (error) {
-    logError(LogCategoriesEnum.STATISTICS_FAILURE, config.hypervisor.identifier, String(error));
+    errorLogger.log(LogCategoriesEnum.STATISTICS_FAILURE, String(error));
   }
 
   let interactionsToFulfill: PendingInteractionType[] = [];
@@ -121,17 +124,16 @@ export const hypervisor = async (message: Message) => {
   }
 
   if (interactionsToFulfill.length > 0) {
-    logMessage(
-      'service_hypervisor',
-      `fulfilling ${interactionsToFulfill.length} pending interaction${interactionsToFulfill.length === 1 ? '' : 's'}`,
-    );
+    const pluralizedEnding = interactionsToFulfill.length === 1 ? '' : 's';
+
+    logger.log(`fulfilling ${interactionsToFulfill.length} pending interaction${pluralizedEnding}`);
     interactionsToFulfill.forEach((interactionItem) => interactionItem.resolver({
       timeout: false,
       success: true,
       content: message,
     }));
   } else if (classification.isCommand) {
-    logMessage('service_hypervisor', `no pending interactions for command ${classification.arguments.basicParse[0]}`);
+    logger.log(`no pending interactions for command ${classification.arguments.basicParse[0]}`);
     await runCommand(classification.arguments.basicParse[0], classification.arguments, message);
   }
 };

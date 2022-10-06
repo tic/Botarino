@@ -1,12 +1,13 @@
 import { readdirSync } from 'fs';
 import { Message } from 'discord.js';
-import { config } from '../config';
-import { commandEngagement } from '../types/databaseModels';
 import { Arguments } from '../types/serviceArgumentParserTypes';
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
-import { collections } from './database.service';
-import { logError, logMessage } from './logger.service';
+import { getLogger, getErrorLogger, logError } from './logger.service';
 import { CommandControllerType } from '../types/commandTypes';
+import * as analytics from './analytics.service';
+
+const logger = getLogger('service_command');
+const errorLogger = getErrorLogger('service_command');
 
 type CommandControllerWithNameType = {
   name: string;
@@ -33,12 +34,12 @@ export const runCommand = async (command: string, args: Arguments, sourceMessage
   try {
     const controller = controllerLookupMap[command];
     if (!controller) {
-      // TODO: handle command not found
+      logger.log(`unknown command "${command}"`);
     } else if (controller.validator && !controller.validator(args)) {
-      logMessage('service_command', 'validation failed');
+      logger.log(`validation failed for command "${command}"`);
       executionComment = 'validation failed';
     } else if (controller.isVisible && !controller.isVisible(sourceMessage.channel)) {
-      logMessage('service_command', 'visibility failed');
+      logger.log(`visibility failed for command "${command}"`);
       executionComment = 'visibility failed';
     } else {
       await controller.executor(args, sourceMessage);
@@ -51,18 +52,17 @@ export const runCommand = async (command: string, args: Arguments, sourceMessage
     );
     commandSuccess = false;
   }
+
   try {
-    collections.commandStats.insertOne({
-      serverId: sourceMessage.inGuild ? sourceMessage.guildId : null,
-      channelId: sourceMessage.channelId,
-      invokerId: sourceMessage.author.id,
-      command: args.basicParse[0],
-      args: args.raw,
-      succeeded: commandSuccess,
-      elapsedTimeMs: new Date().getTime() - commandStarted,
-      executionComment: executionComment.length > 0 ? executionComment : null,
-    } as commandEngagement);
+    await analytics.commandUsed(
+      command,
+      args,
+      commandSuccess,
+      commandStarted,
+      executionComment,
+      sourceMessage,
+    );
   } catch (error) {
-    logError(LogCategoriesEnum.STATISTICS_FAILURE, config.hypervisor.identifier, String(error));
+    errorLogger.log(LogCategoriesEnum.STATISTICS_FAILURE, String(error));
   }
 };
