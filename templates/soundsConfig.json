@@ -1,0 +1,19 @@
+{
+  "manifest": {
+    "sounds": {
+      "soundName": {
+        "filename": "somethingElse",
+        "permissions": {
+          "whitelist": {
+            "user": [],
+            "server": []
+          },
+          "blacklist": {
+            "user": [],
+            "server": []
+          }
+        }
+      }
+    }
+  }
+}
