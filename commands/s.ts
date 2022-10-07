@@ -3,20 +3,8 @@ import { CommandControllerType, CommandExecutor, VisibilityFunction } from '../t
 import { buildBasicMessage, dispatchAction } from '../services/discord.service';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 import { manifest } from '../sounds/sounds.config.json';
-
-type Sound = {
-  filename?: string;
-  permissions?: {
-    whitelist?: {
-      user?: string[];
-      server?: string[];
-    };
-    blacklist?: {
-      user?: string[];
-      server?: string[];
-    };
-  };
-};
+import { Sound } from '../types/commandSpecificTypes';
+import { playSoundToChannel } from '../services/audioPlayer.service';
 
 const { sounds }: { sounds: Record<string, Sound> } = manifest;
 
@@ -60,8 +48,9 @@ const command: CommandExecutor = async (args, message) => {
   }
 
   const soundToPlay = sounds[args.basicParse[1]];
-  // Dispatch connect to VC command
-  // Dispatch play sound action
+  soundToPlay.filename = soundToPlay.filename || args.basicParse[1];
+
+  await playSoundToChannel(soundToPlay, message.member.voice.channel);
 };
 
 const isVisible: VisibilityFunction = (message, args) => args.basicParse[1] === 'list' || visibilityHelper(

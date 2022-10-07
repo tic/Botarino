@@ -8,6 +8,7 @@ export enum InteractionSourceEnum {
   WAIT_FOR_MESSAGE_FROM_CHANNEL = 1,
   WAIT_FOR_MESSAGE_CUSTOM_CRITERIA = 2,
   WAIT_FOR_MESSAGE_REACTION = 3,
+  WAIT_FOR_VOICE_CHANNEL_CONNECT = 4,
 }
 
 export type InteractionType = {

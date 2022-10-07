@@ -1,7 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 
-import { MessagePayload, PresenceData } from 'discord.js';
+import { MessagePayload, PresenceData, VoiceBasedChannel } from 'discord.js';
 
 export enum ChannelClassEnum {
   GENERAL_UPDATES = 'GENERAL_UPDATES',
@@ -29,8 +29,6 @@ export enum DiscordActionTypeEnum {
   DELETE_MESSAGE = 1,
   ADD_REACTION = 2,
   REMOVE_REACTION = 3,
-  JOIN_VOICE_CHANNEL = 4,
-  LEAVE_VOICE_CHANNEL = 5,
   SET_PRESENCE = 6,
 }
 

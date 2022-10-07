@@ -26,7 +26,8 @@ const options: ClientOptions = {
     .add(Intents.FLAGS.DIRECT_MESSAGES)
     .add(Intents.FLAGS.GUILDS)
     .add(Intents.FLAGS.GUILD_MESSAGES)
-    .add(Intents.FLAGS.GUILD_MESSAGE_REACTIONS),
+    .add(Intents.FLAGS.GUILD_MESSAGE_REACTIONS)
+    .add(Intents.FLAGS.GUILD_VOICE_STATES),
 };
 const client = new Client(options);
 
