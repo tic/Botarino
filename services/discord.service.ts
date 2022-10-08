@@ -130,9 +130,10 @@ const executeActions = async () => {
     } finally {
       releaseAction();
     }
-
+    console.log(actionsToExecute);
     await Promise.all(
       actionsToExecute.map(async (action, index) => {
+        console.log(action, index);
         await sleep(index * 3000);
         try {
           executeAction(action);
@@ -192,3 +193,5 @@ export const parseMessage = (message: Message) => {
 export const getClientId = () => client.user.id;
 
 export const setHandler = (event, listener) => client.on(event, listener);
+
+export const getCurrentPresence = () => client.user.presence;

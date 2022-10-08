@@ -38,7 +38,7 @@ export const runCommand = async (command: string, args: Arguments, sourceMessage
     } else if (controller.validator && !controller.validator(args)) {
       logger.log(`validation failed for command "${command}"`);
       executionComment = 'validation failed';
-    } else if (controller.isVisible && !controller.isVisible(sourceMessage.channel)) {
+    } else if (controller.isVisible && !controller.isVisible(sourceMessage, args)) {
       logger.log(`visibility failed for command "${command}"`);
       executionComment = 'visibility failed';
     } else {

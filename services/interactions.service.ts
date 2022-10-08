@@ -86,9 +86,10 @@ export const hypervisor = async (message: Message) => {
   }
 
   let interactionsToFulfill: PendingInteractionType[] = [];
+  let matchingBlocked = false;
+
   const release = await interactionLock.acquire();
   try {
-    let matchingBlocked = false;
     const matchedInteractions = new Set<number>();
     for (let i = 0; i < pendingInteractions.length; i++) {
       const pendingInteraction = pendingInteractions[i];
@@ -132,8 +133,11 @@ export const hypervisor = async (message: Message) => {
       success: true,
       content: message,
     }));
-  } else if (classification.isCommand) {
-    logger.log(`no pending interactions for command ${classification.arguments.basicParse[0]}`);
+  }
+
+  // Only try to run a command if there were no matched, blocking interactions
+  if (!matchingBlocked && classification.isCommand) {
+    logger.log(`no pending blocking interactions for command ${classification.arguments.basicParse[0]}`);
     await runCommand(classification.arguments.basicParse[0], classification.arguments, message);
   }
 };

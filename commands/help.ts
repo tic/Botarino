@@ -41,7 +41,7 @@ const executor: CommandExecutor = async (args, message) => {
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
       payload: buildBasicMessage(message.channel as TextChannel, `Unknown command "${args.basicParse[0]}"`, []),
     });
-  } else if (!commandController.isVisible || commandController.isVisible(message.channel)) {
+  } else if (!commandController.isVisible || commandController.isVisible(message, args)) {
     // Help called on an actual command: !help echo
     const syntax = parseSyntaxDescriptionFromHelpString(commandName, commandController.help);
     console.log(JSON.stringify(syntax, undefined, '  '));
