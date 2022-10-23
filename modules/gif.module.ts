@@ -8,7 +8,7 @@ import { logError } from '../services/logger.service';
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
 import { collections } from '../services/database.service';
 import { gifEngagement, gifItem } from '../types/databaseModels';
-import { buildBasicMessage, dispatchAction } from '../services/discord.service';
+import { buildBasicMessage, dispatchAction, getClientId } from '../services/discord.service';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 
 let gifs: gifItem[];
@@ -33,7 +33,7 @@ const runModule = async () => {
     const event = await interaction(
       {
         interactionSource: InteractionSourceEnum.WAIT_FOR_MESSAGE_CUSTOM_CRITERIA,
-        validator: () => true,
+        validator: (message) => message.author.id !== getClientId(),
       },
       false,
       false,
