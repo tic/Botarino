@@ -51,6 +51,11 @@ const command: CommandExecutor = async (args, message) => {
   soundToPlay.filename = soundToPlay.filename || args.basicParse[1];
 
   await playSoundToChannel(soundToPlay, message.member.voice.channel);
+  await dispatchAction({
+    actionType: DiscordActionTypeEnum.DELETE_MESSAGE,
+    channelId: message.channelId,
+    messageId: message.id,
+  });
 };
 
 const isVisible: VisibilityFunction = (message, args) => args.basicParse[1] === 'list' || visibilityHelper(

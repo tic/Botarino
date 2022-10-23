@@ -6,6 +6,7 @@ import {
   joinVoiceChannel,
   NoSubscriberBehavior,
   StreamType,
+  VoiceConnection,
   VoiceConnectionStatus,
 } from '@discordjs/voice';
 import {
@@ -13,8 +14,8 @@ import {
 } from 'discord.js';
 import { join } from 'node:path';
 import { Sound } from '../types/commandSpecificTypes';
-// import { logError } from './logger.service';
-// import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
+import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
+import { logError, logMessage } from './logger.service';
 
 const player = createAudioPlayer({
   behaviors: {
@@ -23,9 +24,22 @@ const player = createAudioPlayer({
 });
 
 const getResource = (sound: Sound) => createAudioResource(
-  join('..', 'soundboard', `${sound.filename}.mp3`),
+  join('soundboard', `${sound.filename}.mp3`),
   { inputType: StreamType.Arbitrary },
 );
+
+const disconnectTimers: Record<string, ReturnType<typeof setTimeout>> = {};
+const beginDisconnectTimer = (channelId: string, connection: VoiceConnection) => {
+  const timer = disconnectTimers[channelId];
+  if (timer) {
+    clearTimeout(timer);
+  }
+
+  disconnectTimers[channelId] = setTimeout(() => {
+    connection.destroy();
+    delete disconnectTimers[channelId];
+  }, 900000);
+};
 
 // eslint-disable-next-line import/prefer-default-export
 export const playSoundToChannel = async (sound: Sound, channel: VoiceBasedChannel) => {
@@ -33,11 +47,10 @@ export const playSoundToChannel = async (sound: Sound, channel: VoiceBasedChanne
     return false;
   }
 
-  console.log('joining vc');
-
   let connection = getVoiceConnection(channel.guildId);
 
   if (connection?.joinConfig?.channelId !== channel.id) {
+    logMessage('service_audioPlayer', 'establishing connection');
     connection = joinVoiceChannel({
       channelId: channel.id,
       guildId: channel.guildId,
@@ -56,43 +69,21 @@ export const playSoundToChannel = async (sound: Sound, channel: VoiceBasedChanne
     ]);
 
     if (!isConnected) {
-      console.log('no connect');
+      logError(LogCategoriesEnum.CONNECTION_FAILURE, 'service_audioPlayer', 'voice channel connection timeout');
       return false;
     }
   } else {
-    console.log('already connected');
+    logMessage('service_audioPlayer', 'already connected -- using existing connection');
   }
 
-  if (connection) {
-    connection.subscribe(player);
-    player.play(getResource(sound));
-    setTimeout(() => connection.destroy(), 10000);
-    return true;
+  if (!connection) {
+    logMessage('service_audioPlayer', 'invalid connection object');
+    return false;
   }
 
-  return false;
-
-  // console.log(connection);
-
-  // try {
-  //   await entersState(connection, VoiceConnectionStatus.Ready, 30e3); // 30e3 = 30000
-  // } catch (error) {
-  //   connection.destroy();
-  //   logError(LogCategoriesEnum.DISCORD_ERROR, String(error));
-  //   return false;
-  // }
-
-  // console.log('getting retsource');
-  // const resource = getResource(sound);
-  // console.log(resource);
-  // try {
-  //   player.play(resource);
-  //   await entersState(player, AudioPlayerStatus.Playing, 5e3);
-  // } catch (error) {
-  //   connection.destroy();
-  //   logError(LogCategoriesEnum.DISCORD_ERROR, String(error));
-  //   return false;
-  // }
-
-  // return true;
+  logMessage('service_audioPlayer', 'connected -- playing');
+  connection.subscribe(player);
+  player.play(getResource(sound));
+  beginDisconnectTimer(channel.id, connection);
+  return true;
 };
