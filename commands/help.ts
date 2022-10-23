@@ -27,8 +27,16 @@ const parsedArgToString = (parsedArg: ArgumentDescription) => {
 
 const executor: CommandExecutor = async (args, message) => {
   // Help called by itself: !help
+  // Provide general information about the bot and a list of valid commands.
   if (args.basicParse.length === 1) {
-    // Provide general information about the bot and a list of valid commands.
+    await dispatchAction({
+      actionType: DiscordActionTypeEnum.SEND_MESSAGE,
+      payload: buildBasicMessage(message.channel as TextChannel, ' ', [
+        new MessageEmbed()
+          .setAuthor({ name: 'Command help', iconURL: 'https://i.gyazo.com/ed410bced3281d8829580ebe5452feb6.png' })
+          .setDescription("Oops! I don't know how to list the available commands yet."),
+      ]),
+    });
     return;
   }
 
