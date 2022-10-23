@@ -119,7 +119,11 @@ export const hypervisor = async (message: Message) => {
         matchingBlocked = matchingBlocked || pendingInteraction.blocking;
       }
     }
+
     interactionsToFulfill = pendingInteractions.filter((_, i) => matchedInteractions.has(i));
+    Array.from(matchedInteractions.values()).sort((a, b) => b - a).forEach((index) => {
+      pendingInteractions.splice(index, 1);
+    });
   } finally {
     release();
   }

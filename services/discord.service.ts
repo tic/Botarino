@@ -130,10 +130,8 @@ const executeActions = async () => {
     } finally {
       releaseAction();
     }
-    console.log(actionsToExecute);
     await Promise.all(
       actionsToExecute.map(async (action, index) => {
-        console.log(action, index);
         await sleep(index * 3000);
         try {
           executeAction(action);
