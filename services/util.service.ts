@@ -16,21 +16,33 @@ export class Semaphore {
         this.#waitingResolvers.push(resolve as () => void);
       });
     }
-    this.#p--;
-    let resolved = false;
-    const resolvingFunction = () => {
-      if (resolved) {
-        return;
-      }
-      resolved = true;
-      const waitingResolver = this.#waitingResolvers.shift();
-      if (waitingResolver) {
-        waitingResolver(resolvingFunction);
-      } else {
-        this.#p++;
-      }
+
+    const getResolvingFunction = (): {
+      (): void;
+      resolved: boolean;
+    } => {
+      const resolvingFunction = Object.assign(
+        () => {
+          if (resolvingFunction.resolved) {
+            return;
+          }
+
+          resolvingFunction.resolved = true;
+          const waitingResolver = this.#waitingResolvers.shift();
+          if (waitingResolver) {
+            waitingResolver(getResolvingFunction());
+          } else {
+            this.#p++;
+          }
+        },
+        { resolved: false },
+      );
+
+      return resolvingFunction;
     };
-    return Promise.resolve(resolvingFunction);
+
+    this.#p--;
+    return Promise.resolve(getResolvingFunction());
   }
 }
 
