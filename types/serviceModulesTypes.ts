@@ -3,4 +3,5 @@ export type ModuleControllerType = {
   setup: () => Promise<unknown>;
   // eslint-disable-next-line no-unused-vars
   run: (...args: unknown[]) => Promise<void>;
+  runInDevMode?: boolean;
 }

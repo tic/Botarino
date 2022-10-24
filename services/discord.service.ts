@@ -44,6 +44,11 @@ const launchModules = async () => {
   await Promise.all(
     modules.map(async (module) => {
       const sourceName = `module_${module.name.replace(/\s/g, '-')}`;
+      if (!module.runInDevMode) {
+        logMessage(sourceName, 'module does not run in dev mode');
+        return;
+      }
+
       logMessage(sourceName, 'initializing module');
       await module.setup();
 
@@ -152,6 +157,17 @@ export const dispatchAction = async (action: DiscordActionType) => {
   const release = await actionSemaphore.acquire();
   try {
     pendingActions.push(action);
+  } finally {
+    release();
+  }
+
+  executeActions();
+};
+
+export const dispatchActions = async (actions: DiscordActionType[]) => {
+  const release = await actionSemaphore.acquire();
+  try {
+    pendingActions.push(...actions);
   } finally {
     release();
   }

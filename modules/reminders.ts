@@ -10,7 +10,7 @@ const runModule = async () => {
 };
 
 export default {
-  name: '',
+  name: 'reminders',
   run: runModule,
   setup: () => Promise.resolve(null),
 } as ModuleControllerType;
