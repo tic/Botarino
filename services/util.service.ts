@@ -53,3 +53,14 @@ export const sleep = (ms: number) => new Promise((_resolve) => {
 
 // eslint-disable-next-line no-unused-vars
 export const selectRandomElement: (<T>(_: Array<T>) => T) = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+export const padToNDigits = (value: number, length: number) => {
+  const base = value.toString();
+  if (base.length >= length) {
+    return base;
+  }
+
+  const remainingLength = length - base.length;
+  const prefix = [...new Array(remainingLength)].map(() => '0');
+  return `${prefix}${base}`;
+};

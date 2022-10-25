@@ -24,9 +24,10 @@ export const parseSyntaxDescriptionFromHelpString = (commandName: string, helpSt
 export const parseArguments = (message: string) : Arguments => {
   const withoutPrefix = message.substring(1);
   const basicParse = withoutPrefix.split(' ');
+  const endOfCommandName = withoutPrefix.indexOf(' ');
   const args = {
     raw: withoutPrefix,
-    rawWithoutCommand: withoutPrefix.substring(withoutPrefix.indexOf(' ')),
+    rawWithoutCommand: endOfCommandName > -1 ? withoutPrefix.substring(endOfCommandName + 1) : '',
     basicParse,
     basicParseWithoutCommand: basicParse.slice(1),
   };
