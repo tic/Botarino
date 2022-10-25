@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Semaphore, sleep } from '../services/util.service';
 
 const semaphoreTests = {

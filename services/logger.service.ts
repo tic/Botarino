@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { appendFile } from 'fs';
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
 
