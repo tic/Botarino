@@ -1,5 +1,5 @@
-import { MessageEmbed, TextChannel } from 'discord.js';
-import { buildBasicMessage, dispatchAction } from '../services/discord.service';
+import { TextChannel } from 'discord.js';
+import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
 import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 
@@ -96,17 +96,14 @@ const command: CommandExecutor = async (args, message) => {
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
     payload: buildBasicMessage(message.channel as TextChannel, ' ', [
-      new MessageEmbed()
-        .setAuthor({ name: 'Bill split results' })
-        .setDescription(
-          `The total amount paid was \`$${total}\`. Splitting that among ${nameCostPairs.length} people, the cost/perso'
-          + 'n is \`$${Math.round(costPerPerson * 100) / 100}\`.`,
-        )
-        .addFields(
-          paymentItems.length === 0
-            ? [{ name: 'No payments necessary', value: 'The total has already been optimally divided!' }]
-            : paymentItems.map((item) => ({ name: item.from, value: `Pays ${item.amount} to ${item.to}` })),
-        ),
+      buildIEmbed({
+        title: 'Bill split results',
+        description: `The total amount paid was \`$${total}\`. Splitting that among ${nameCostPairs.length} people, the'
+          + ' cost/person is \`$${Math.round(costPerPerson * 100) / 100}\`.`,
+        fields: paymentItems.length === 0
+          ? [{ name: 'No payments necessary', value: 'The total has already been optimally divided!' }]
+          : paymentItems.map((item) => ({ name: item.from, value: `Pays ${item.amount} to ${item.to}` })),
+      }),
     ]),
   });
 };

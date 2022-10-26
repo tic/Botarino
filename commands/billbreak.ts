@@ -1,5 +1,5 @@
-import { MessageEmbed, TextChannel } from 'discord.js';
-import { buildBasicMessage, dispatchAction } from '../services/discord.service';
+import { TextChannel } from 'discord.js';
+import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
 import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 
@@ -33,13 +33,12 @@ const command: CommandExecutor = async (args, message) => {
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
     payload: buildBasicMessage(message.channel as TextChannel, ' ', [
-      new MessageEmbed()
-        .setAuthor({ name: 'Bill calculation' })
-        .addFields(
-          display.map(
-            ([person, amount, percentage]) => ({ name: person, value: `$${amount}\n(cost + ${percentage}) of fees` }),
-          ),
+      buildIEmbed({
+        title: 'Bill calculation',
+        fields: display.map(
+          ([person, amount, percentage]) => ({ name: person, value: `$${amount}\n(cost + ${percentage}) of fees` }),
         ),
+      }),
     ]),
   });
 };

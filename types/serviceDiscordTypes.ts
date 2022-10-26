@@ -1,7 +1,13 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 
-import { MessagePayload, PresenceData, VoiceBasedChannel } from 'discord.js';
+import {
+  ColorResolvable,
+  MessageEmbed,
+  MessagePayload,
+  PresenceData,
+  VoiceBasedChannel,
+} from 'discord.js';
 
 export enum ChannelClassEnum {
   GENERAL_UPDATES = 'GENERAL_UPDATES',
@@ -43,3 +49,31 @@ export type DiscordActionType = {
   actionType: DiscordActionTypeEnum.SET_PRESENCE;
   presence: PresenceData;
 }
+
+export type IEmbedProperties = {
+  color?: ColorResolvable;
+  title?: string;
+  url?: string;
+  thumbnail?: string;
+  author?: {
+    name: string;
+    url?: string;
+    iconURL?: string;
+  },
+  description?: string;
+  removeInlineDefault?: boolean;
+  fields?: {
+    name: string;
+    value: string;
+    inline?: boolean;
+  }[],
+  footer?: {
+    text: string;
+    url?: string;
+    iconUrl?: string;
+  },
+  timestamp?: number | true;
+  image?: string;
+}
+
+export type IEmbed = MessageEmbed

@@ -1,8 +1,8 @@
-import { MessageEmbed, TextChannel } from 'discord.js';
-import { buildBasicMessage, dispatchAction } from '../services/discord.service';
+import { TextChannel } from 'discord.js';
+import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
 import { selectRandomElement } from '../services/util.service';
 import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
-import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
+import { DiscordActionTypeEnum, IEmbed, IEmbedProperties } from '../types/serviceDiscordTypes';
 
 const shakeFlavors = [
   'Fresh banana', 'Banana berry', 'Banana fudge', 'Banana nut', 'Banana pineapple', 'Banana pudding', 'Blueberry', 'But'
@@ -91,49 +91,69 @@ const generateMeal = (entrees: string[], numberOfSides: number) => {
 // eslint-disable-next-line no-unused-vars
 const command: CommandExecutor = async (args, message) => {
   const entity = args.basicParseWithoutCommand[0];
-  const getDefaultEmbed = () => new MessageEmbed()
-    .setAuthor({ name: 'Cookout Items' })
-    .setDescription("Here are your cookout items, but they're probably not what you wanted!");
-  const embeds: MessageEmbed[] = [];
+  const embeds: IEmbed[] = [];
+  const defaultEmbedProps: Partial<IEmbedProperties> = {
+    color: '#ff0000',
+    title: 'Cookout Items',
+    description: "Here are your Cookout items, but they're probably not what you wanted!",
+  };
 
   if (entity === 'jrtray') {
     const tray = generateMeal(jrTrayEntrees, 1);
-    embeds.push(getDefaultEmbed().addFields(
-      { name: 'Entree', value: tray.entreeInfo.length > 0 ? `${tray.entree}\n${tray.entreeInfo}` : tray.entree },
-      { name: 'Side', value: tray.sides[0] },
-      { name: 'Drink', value: tray.drink },
-      { name: 'Shake', value: tray.shake },
-    ));
+    embeds.push(buildIEmbed({
+      ...defaultEmbedProps,
+      fields: [
+        { name: 'Entree', value: tray.entreeInfo.length > 0 ? `${tray.entree}\n${tray.entreeInfo}` : tray.entree },
+        { name: 'Side', value: tray.sides[0] },
+        { name: 'Drink', value: tray.drink },
+        { name: 'Shake', value: tray.shake },
+      ],
+    }));
   } else if (entity === 'tray') {
     const tray = generateMeal(trayEntrees, 2);
-    embeds.push(getDefaultEmbed().addFields(
-      { name: 'Entree', value: tray.entreeInfo.length > 0 ? `${tray.entree}\n${tray.entreeInfo}` : tray.entree },
-      { name: 'Sides', value: tray.sides.join(' and ') },
-      { name: 'Drink', value: tray.drink },
-      { name: 'Shake', value: tray.shake },
-    ));
+    embeds.push(buildIEmbed({
+      ...defaultEmbedProps,
+      fields: [
+        { name: 'Entree', value: tray.entreeInfo.length > 0 ? `${tray.entree}\n${tray.entreeInfo}` : tray.entree },
+        { name: 'Sides', value: tray.sides.join(' and ') },
+        { name: 'Drink', value: tray.drink },
+        { name: 'Shake', value: tray.shake },
+      ],
+    }));
   } else if (entity === 'burger') {
-    embeds.push(getDefaultEmbed().addFields({ name: 'Entree', value: selectRandomElement(burgerTypes) }));
+    embeds.push(buildIEmbed({
+      ...defaultEmbedProps,
+      fields: [{ name: 'Entree', value: selectRandomElement(burgerTypes) }],
+    }));
   } else if (entity === 'bbq') {
-    embeds.push(getDefaultEmbed().addFields({ name: 'Entree', value: selectRandomElement(bbqEntrees) }));
+    embeds.push(buildIEmbed({
+      ...defaultEmbedProps,
+      fields: [{ name: 'Entree', value: selectRandomElement(bbqEntrees) }],
+    }));
   } else if (entity === 'chicken') {
-    embeds.push(getDefaultEmbed().addFields({ name: 'Entree', value: selectRandomElement(chickenEntrees) }));
+    embeds.push(buildIEmbed({
+      ...defaultEmbedProps,
+      fields: [{ name: 'Entree', value: selectRandomElement(chickenEntrees) }],
+    }));
   } else if (entity === 'shake') {
-    embeds.push(getDefaultEmbed().addFields({ name: 'Shake', value: getShake() }));
+    embeds.push(buildIEmbed({
+      ...defaultEmbedProps,
+      fields: [{ name: 'Shake', value: getShake() }],
+    }));
   } else if (entity === 'vs') {
     const traysToGenerate = Number(args.basicParseWithoutCommand[1]);
     const trays = [new Array(traysToGenerate)].map(() => generateMeal(trayEntrees, 2));
     trays.forEach((tray, i) => {
-      embeds.push(
-        getDefaultEmbed()
-          .setTitle(`Tray ${i + 1}`)
-          .addFields(
-            { name: 'Entree', value: tray.entreeInfo.length > 0 ? `${tray.entree}\n${tray.entreeInfo}` : tray.entree },
-            { name: 'Sides', value: tray.sides.join(' and ') },
-            { name: 'Drink', value: tray.drink },
-            { name: 'Shake', value: tray.shake },
-          ),
-      );
+      embeds.push(buildIEmbed({
+        ...defaultEmbedProps,
+        title: `Tray ${i + 1}`,
+        fields: [
+          { name: 'Entree', value: tray.entreeInfo.length > 0 ? `${tray.entree}\n${tray.entreeInfo}` : tray.entree },
+          { name: 'Sides', value: tray.sides.join(' and ') },
+          { name: 'Drink', value: tray.drink },
+          { name: 'Shake', value: tray.shake },
+        ],
+      }));
     });
   }
 
@@ -142,8 +162,8 @@ const command: CommandExecutor = async (args, message) => {
     const side = selectRandomElement(sideOrders);
     embeds.forEach((embed) => {
       embed.addFields(
-        { name: 'Drink', value: drink, inline: true },
-        { name: 'Side', value: side, inline: true },
+        { name: 'Drink', value: drink },
+        { name: 'Side', value: side },
       );
     });
   }

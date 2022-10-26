@@ -1,6 +1,6 @@
-import { MessageEmbed, TextChannel } from 'discord.js';
+import { TextChannel } from 'discord.js';
 import * as RandExp from 'randexp';
-import { buildBasicMessage, dispatchAction } from '../services/discord.service';
+import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
 import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 
@@ -29,9 +29,10 @@ const command: CommandExecutor = async (args, message) => {
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
     payload: buildBasicMessage(message.channel as TextChannel, ' ', [
-      new MessageEmbed()
-        .setTitle(`Generated ${count} name${count > 1 ? 's' : ''} using regex \`${regex}\`.`)
-        .setDescription(generatedNames.join(', ')),
+      buildIEmbed({
+        title: `Generated ${count} name${count > 1 ? 's' : ''} using regex \`${regex}\`.`,
+        description: generatedNames.join(', '),
+      }),
     ]),
   });
 };

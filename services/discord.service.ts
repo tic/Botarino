@@ -11,7 +11,7 @@ import {
 } from 'discord.js';
 import { readdirSync } from 'fs';
 import { config } from '../config';
-import { DiscordActionType, DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
+import { DiscordActionType, DiscordActionTypeEnum, IEmbedProperties } from '../types/serviceDiscordTypes';
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
 import { ModuleControllerType } from '../types/serviceModulesTypes';
 import { parseArguments } from './argumentParser.service';
@@ -209,3 +209,83 @@ export const getClientId = () => client.user.id;
 export const setHandler = (event, listener) => client.on(event, listener);
 
 export const getCurrentPresence = () => client.user.presence;
+
+export const buildIEmbed = (props?: IEmbedProperties) => {
+  const defaultFooter = {
+    text: `Maintained by ${config.discord.maintainer}`,
+    iconURL: 'https://i.gyazo.com/0842de92fce0bef73327f31a628245ec.jpg',
+  };
+
+  const baseEmbed = new MessageEmbed()
+    .setColor('#2ecc71')
+    .setTimestamp()
+    .setFooter(defaultFooter);
+
+  if (!props) {
+    return baseEmbed;
+  }
+
+  if (props.color) {
+    baseEmbed.setColor(props.color);
+  }
+
+  if (props.title) {
+    baseEmbed.setTitle(props.title);
+  }
+
+  if (props.url) {
+    baseEmbed.setURL(props.url);
+  }
+
+  if (props.thumbnail) {
+    baseEmbed.setThumbnail(props.thumbnail);
+  }
+
+  if (props.author) {
+    baseEmbed.setAuthor(props.author);
+  }
+
+  if (props.description) {
+    if (props.description.length === 0) {
+      throw new Error("description can't be an empty string");
+    }
+
+    baseEmbed.setDescription(props.description);
+  }
+
+  if (props.fields) {
+    const invalidFields = props.fields.reduce(
+      (sum, field) => (field.name.length && field.value.length ? sum : sum + 1),
+      0,
+    );
+
+    if (invalidFields > 0) {
+      throw new Error('field names and values cannot contain empty strings');
+    }
+
+    const inlineDefault = !props.removeInlineDefault;
+    baseEmbed.setFields(props.fields.map((field) => ({
+      name: field.name,
+      value: field.value,
+      inline: field.inline ?? inlineDefault,
+    })));
+  }
+
+  if (props.footer) {
+    baseEmbed.setFooter({ ...defaultFooter, ...props.footer });
+  }
+
+  if (props.timestamp) {
+    if (props.timestamp === true) {
+      baseEmbed.setTimestamp();
+    } else {
+      baseEmbed.setTimestamp(props.timestamp);
+    }
+  }
+
+  if (props.image) {
+    baseEmbed.setImage(props.image);
+  }
+
+  return baseEmbed;
+};

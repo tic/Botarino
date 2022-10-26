@@ -1,6 +1,6 @@
-import { MessageEmbed, TextChannel } from 'discord.js';
+import { TextChannel } from 'discord.js';
 import { collections } from '../services/database.service';
-import { buildBasicMessage, dispatchAction } from '../services/discord.service';
+import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
 import { formatNumAsPct } from '../services/util.service';
 import { CommandControllerType, CommandExecutor, createRegexValidator } from '../types/commandTypes';
 import { StatisticItem } from '../types/databaseModels';
@@ -194,10 +194,11 @@ const command: CommandExecutor = async (args, message) => {
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
     payload: buildBasicMessage(message.channel as TextChannel, ' ', [
-      new MessageEmbed()
-        .setAuthor({ name: 'Statistics' })
-        .setDescription('Here are some (hopefully) interesting statistics!')
-        .addFields(stats.map((stat) => ({ ...stat, inline: true }))),
+      buildIEmbed({
+        title: 'Statistics',
+        description: 'Here are some (hopefully) interesting statistics!',
+        fields: stats,
+      }),
     ]),
   });
 };

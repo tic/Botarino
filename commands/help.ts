@@ -1,7 +1,7 @@
-import { MessageEmbed, TextChannel } from 'discord.js';
+import { TextChannel } from 'discord.js';
 import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
 import { controllerLookupMap } from '../services/command.service';
-import { buildBasicMessage, dispatchAction } from '../services/discord.service';
+import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 import { parseSyntaxDescriptionFromHelpString } from '../services/argumentParser.service';
 import { ArgumentDescription } from '../types/serviceArgumentParserTypes';
@@ -32,9 +32,13 @@ const executor: CommandExecutor = async (args, message) => {
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
       payload: buildBasicMessage(message.channel as TextChannel, ' ', [
-        new MessageEmbed()
-          .setAuthor({ name: 'Command help', iconURL: 'https://i.gyazo.com/ed410bced3281d8829580ebe5452feb6.png' })
-          .setDescription("Oops! I don't know how to list the available commands yet."),
+        buildIEmbed({
+          author: {
+            name: 'Command help',
+            iconURL: 'https://i.gyazo.com/ed410bced3281d8829580ebe5452feb6.png',
+          },
+          description: "Oops! I don't know how to list the available commands yet.",
+        }),
       ]),
     });
     return;
@@ -55,14 +59,19 @@ const executor: CommandExecutor = async (args, message) => {
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
       payload: buildBasicMessage(message.channel as TextChannel, ' ', [
-        new MessageEmbed()
-          .setAuthor({ name: 'Command help', iconURL: 'https://i.gyazo.com/ed410bced3281d8829580ebe5452feb6.png' })
-          .addFields(
+        buildIEmbed({
+          author: {
+            name: 'Command help',
+            iconURL: 'https://i.gyazo.com/ed410bced3281d8829580ebe5452feb6.png',
+          },
+          removeInlineDefault: true,
+          fields: [
             { name: 'Call syntax', value: syntax.callSyntax },
             ...syntax.arguments.map(
               (parsedArg, index) => ({ name: `Argument ${index + 1}`, value: parsedArgToString(parsedArg) }),
             ),
-          ),
+          ],
+        }),
       ]),
     });
   }
