@@ -1,4 +1,3 @@
-import { TextChannel } from 'discord.js';
 import { collections } from '../services/database.service';
 import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
 import { formatNumAsPct } from '../services/util.service';
@@ -193,7 +192,7 @@ const command: CommandExecutor = async (args, message) => {
 
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-    payload: buildBasicMessage(message.channel as TextChannel, ' ', [
+    payload: buildBasicMessage(message.channel, ' ', [
       buildIEmbed({
         title: 'Statistics',
         description: 'Here are some (hopefully) interesting statistics!',

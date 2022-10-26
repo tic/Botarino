@@ -1,4 +1,3 @@
-import { TextChannel } from 'discord.js';
 import { dispatchAction, buildBasicMessage } from '../services/discord.service';
 import { selectRandomElement } from '../services/util.service';
 import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
@@ -31,7 +30,7 @@ const executor: CommandExecutor = async (_, { channel }) => {
   const response = selectRandomElement(responses);
   dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-    payload: buildBasicMessage(channel as TextChannel, response, []),
+    payload: buildBasicMessage(channel, response, []),
   });
 };
 

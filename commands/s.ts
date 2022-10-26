@@ -1,4 +1,3 @@
-import { TextChannel } from 'discord.js';
 import { CommandControllerType, CommandExecutor, VisibilityFunction } from '../types/commandTypes';
 import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
@@ -36,7 +35,7 @@ const command: CommandExecutor = async (args, message) => {
     const results = getPlayableSounds(message.author.id, message.channelId);
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel as TextChannel, ' ', [
+      payload: buildBasicMessage(message.channel, ' ', [
         buildIEmbed({
           title: 'Valid sounds',
           description: results.join('     '),

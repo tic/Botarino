@@ -1,4 +1,3 @@
-import { TextChannel } from 'discord.js';
 import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
 import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
@@ -95,7 +94,7 @@ const command: CommandExecutor = async (args, message) => {
 
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-    payload: buildBasicMessage(message.channel as TextChannel, ' ', [
+    payload: buildBasicMessage(message.channel, ' ', [
       buildIEmbed({
         title: 'Bill split results',
         description: `The total amount paid was \`$${total}\`. Splitting that among ${nameCostPairs.length} people, the'

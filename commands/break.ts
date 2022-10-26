@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { TextChannel } from 'discord.js';
 import { buildBasicMessage, buildIEmbed, dispatchActions } from '../services/discord.service';
 import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
@@ -62,7 +61,7 @@ const command: CommandExecutor = async (args, message) => {
       .map((segment, index, segments) => ({
         actionType: DiscordActionTypeEnum.SEND_MESSAGE,
         payload: buildBasicMessage(
-          message.channel as TextChannel,
+          message.channel,
           segment.substring(0, 2000),
           [buildIEmbed({ description: `Message ${index + 1} of ${segments.length}` })],
         ),

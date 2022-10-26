@@ -1,4 +1,3 @@
-import { TextChannel } from 'discord.js';
 import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
 import { controllerLookupMap } from '../services/command.service';
 import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
@@ -31,7 +30,7 @@ const executor: CommandExecutor = async (args, message) => {
   if (args.basicParse.length === 1) {
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel as TextChannel, ' ', [
+      payload: buildBasicMessage(message.channel, ' ', [
         buildIEmbed({
           author: {
             name: 'Command help',
@@ -51,14 +50,14 @@ const executor: CommandExecutor = async (args, message) => {
     // Help called on a non-existent command: !help diddlyDoodly
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel as TextChannel, `Unknown command "${args.basicParse[0]}"`, []),
+      payload: buildBasicMessage(message.channel, `Unknown command "${args.basicParse[0]}"`, []),
     });
   } else if (!commandController.isVisible || commandController.isVisible(message, args)) {
     // Help called on an actual command: !help echo
     const syntax = parseSyntaxDescriptionFromHelpString(commandName, commandController.help);
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel as TextChannel, ' ', [
+      payload: buildBasicMessage(message.channel, ' ', [
         buildIEmbed({
           author: {
             name: 'Command help',

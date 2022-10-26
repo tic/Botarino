@@ -185,11 +185,11 @@ export const initialize = () => {
 };
 
 export const buildBasicMessage = (
-  destination: TextChannel,
+  destination: AnyChannel,
   content: string,
   embeds: MessageEmbed[],
 ) => new MessagePayload(
-  destination,
+  destination as TextChannel,
   {
     content,
     embeds,

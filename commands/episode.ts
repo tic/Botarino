@@ -1,4 +1,3 @@
-import { TextChannel } from 'discord.js';
 import { getCurrentEpisode } from '../modules/presence.module';
 import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
 import { padToNDigits } from '../services/util.service';
@@ -49,7 +48,7 @@ const command: CommandExecutor = async (args, message) => {
 
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-    payload: buildBasicMessage(message.channel as TextChannel, ' ', [embed]),
+    payload: buildBasicMessage(message.channel, ' ', [embed]),
   });
 };
 

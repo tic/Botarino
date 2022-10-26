@@ -1,4 +1,3 @@
-import { TextChannel } from 'discord.js';
 import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
 import { selectRandomElement } from '../services/util.service';
 import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
@@ -171,7 +170,7 @@ const command: CommandExecutor = async (args, message) => {
   if (embeds.length) {
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel as TextChannel, ' ', embeds),
+      payload: buildBasicMessage(message.channel, ' ', embeds),
     });
   }
 
