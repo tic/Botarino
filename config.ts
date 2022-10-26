@@ -33,6 +33,7 @@ export const getConfig = () => {
       inPracticeMode: env('PRACTICE_MODE') === 'true',
     },
     discord: {
+      maintainer: env('DISCORD_MAINTAINER'),
       secret: env('DISCORD_SECRET'),
       username: env('DISCORD_USERNAME'),
       servers: (
