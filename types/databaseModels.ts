@@ -1,20 +1,24 @@
 import { ObjectId } from 'mongodb';
 import { AnalyticsTypesEnum } from './serviceAnalyticsTypes';
 
-export interface databaseItem {
+export interface DatabaseItem {
   _id?: ObjectId;
 }
 
-export interface serverEngagement extends databaseItem {
+export interface StatisticItem extends DatabaseItem {
   engagementType: AnalyticsTypesEnum;
-  channelId: string;
-  senderId: string;
   serverId: string | null;
+  channelId: string;
+  userId: string;
   timestamp: number;
+}
+
+export interface ServerEngagement extends StatisticItem {
+  engagementType: AnalyticsTypesEnum.NEW_MESSAGE;
   username: string;
 }
 
-export interface reminder extends databaseItem {
+export interface Reminder extends DatabaseItem {
   authorId: string;
   targetChannelId: string;
   frequency: string;
@@ -23,26 +27,27 @@ export interface reminder extends databaseItem {
   description: string;
 }
 
-export interface commandEngagement extends databaseItem {
-  serverId: string;
-  channelId: string;
-  invokerId: string;
+export interface CommandEngagement extends StatisticItem {
+  engagementType: AnalyticsTypesEnum.COMMAND_USED;
   command: string;
   args: string;
   succeeded: boolean;
   elapsedTimeMs: number;
-  executionComment: string;
+  executionComment: string | null;
 }
 
-export interface gifEngagement extends databaseItem {
-  serverId: string;
-  channelId: string;
-  userId: string;
+export interface GifEngagement extends StatisticItem {
+  engagementType: AnalyticsTypesEnum.GIF_AWARDED;
   gifId: string | ObjectId;
-  timestamp: number;
 }
 
-export interface gifItem extends databaseItem {
+export interface SoundEngagement extends StatisticItem {
+  engagementType: AnalyticsTypesEnum.SOUND_PLAYED;
+  channelId: string | null;
+  sound: string;
+}
+
+export interface GifItem extends DatabaseItem {
   gifSourceUrl: string;
   messageTemplate: string;
   awardCount: number;

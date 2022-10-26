@@ -5,6 +5,7 @@ import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 import { manifest } from '../sounds/sounds.config.json';
 import { Sound } from '../types/commandSpecificTypes';
 import { playSoundToChannel } from '../services/audioPlayer.service';
+import { soundPlayed } from '../services/analytics.service';
 
 const { sounds }: { sounds: Record<string, Sound> } = manifest;
 
@@ -51,11 +52,14 @@ const command: CommandExecutor = async (args, message) => {
   soundToPlay.filename = soundToPlay.filename || args.basicParse[1];
 
   await playSoundToChannel(soundToPlay, message.member.voice.channel);
-  await dispatchAction({
-    actionType: DiscordActionTypeEnum.DELETE_MESSAGE,
-    channelId: message.channelId,
-    messageId: message.id,
-  });
+  await Promise.all([
+    soundPlayed(soundToPlay.filename, Date.now(), message),
+    dispatchAction({
+      actionType: DiscordActionTypeEnum.DELETE_MESSAGE,
+      channelId: message.channelId,
+      messageId: message.id,
+    }),
+  ]);
 };
 
 const isVisible: VisibilityFunction = (message, args) => args.basicParse[1] === 'list' || visibilityHelper(

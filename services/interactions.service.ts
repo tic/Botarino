@@ -1,6 +1,6 @@
 import { Message } from 'discord.js';
 import { config } from '../config';
-import { serverEngagement } from '../types/databaseModels';
+import { ServerEngagement } from '../types/databaseModels';
 import { AnalyticsTypesEnum } from '../types/serviceAnalyticsTypes';
 import {
   InteractionResolution,
@@ -75,12 +75,12 @@ export const hypervisor = async (message: Message) => {
   try {
     collections.serverEngagements.insertOne({
       engagementType: AnalyticsTypesEnum.NEW_MESSAGE,
-      channelId: message.channelId,
-      senderId: message.author.id,
       serverId: message.inGuild ? message.guildId : null,
+      channelId: message.channelId,
+      userId: message.author.id,
       timestamp: message.createdTimestamp,
       username: message.author.username,
-    } as serverEngagement);
+    } as ServerEngagement);
   } catch (error) {
     errorLogger.log(LogCategoriesEnum.STATISTICS_FAILURE, String(error));
   }

@@ -7,22 +7,23 @@ import { InteractionSourceEnum } from '../types/serviceInteractionTypes';
 import { logError } from '../services/logger.service';
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
 import { collections } from '../services/database.service';
-import { gifEngagement, gifItem } from '../types/databaseModels';
+import { GifEngagement, GifItem } from '../types/databaseModels';
 import { buildBasicMessage, dispatchAction, getClientId } from '../services/discord.service';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
+import { AnalyticsTypesEnum } from '../types/serviceAnalyticsTypes';
 
-let gifs: gifItem[];
+let gifs: GifItem[];
 
 const refreshGifs = async () => {
   try {
     const result = await collections.gifs.find({}).toArray();
-    gifs = result as gifItem[];
+    gifs = result as GifItem[];
   } catch (error) {
     logError(LogCategoriesEnum.MODULE_RUN_FAILURE, 'module_gif', String(error));
   }
 };
 
-const formatGifMessage = (gif: gifItem, message: Message) => gif.messageTemplate
+const formatGifMessage = (gif: GifItem, message: Message) => gif.messageTemplate
   .replace('$USER', `<@!${message.author.id}>`)
   .replace('$URL', gif.gifSourceUrl);
 
@@ -59,13 +60,14 @@ const runModule = async () => {
         for (let k = 0; k < probabilityField.length; k++) {
           if (random < probabilityField[k]) {
             try {
-              collections.gifStats.insertOne({
+              collections.serverEngagements.insertOne({
+                engagementType: AnalyticsTypesEnum.GIF_AWARDED,
                 serverId: (event.content.channel as TextChannel).guildId || null,
                 channelId: event.content.channelId,
                 userId: event.content.author.id,
                 gifId: gifs[i]._id,
                 timestamp: Date.now(),
-              } as gifEngagement);
+              } as GifEngagement);
 
               await dispatchAction({
                 actionType: DiscordActionTypeEnum.SEND_MESSAGE,

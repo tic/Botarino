@@ -64,3 +64,8 @@ export const padToNDigits = (value: number, length: number) => {
   const prefix = [...new Array(remainingLength)].map(() => '0');
   return `${prefix}${base}`;
 };
+
+export const formatNumAsPct = (num: number, roundedDigits: number) => {
+  const offset = 10 ** roundedDigits;
+  return Math.round(num * 100 * offset) / offset;
+};

@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import { commandEngagement, serverEngagement } from '../types/databaseModels';
+import { CommandEngagement, ServerEngagement, SoundEngagement } from '../types/databaseModels';
 import { AnalyticsTypesEnum } from '../types/serviceAnalyticsTypes';
 import { Arguments } from '../types/serviceArgumentParserTypes';
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
@@ -9,11 +9,11 @@ import { getErrorLogger } from './logger.service';
 const errorLogger = getErrorLogger('service_analytics');
 
 export const messagePosted = async (message: Message) => {
-  const engagement: serverEngagement = {
+  const engagement: ServerEngagement = {
     engagementType: AnalyticsTypesEnum.NEW_MESSAGE,
-    channelId: message.channelId,
-    senderId: message.author.id,
     serverId: message.inGuild() ? message.guildId : null,
+    channelId: message.channelId,
+    userId: message.author.id,
     timestamp: message.createdTimestamp,
     username: `${message.author.username}#${message.author.discriminator}`,
   };
@@ -28,16 +28,37 @@ export const commandUsed = async (
   comment: string,
   message: Message,
 ) => {
-  const result = await collections.commandStats.insertOne({
+  const result = await collections.serverEngagements.insertOne({
+    engagementType: AnalyticsTypesEnum.COMMAND_USED,
+    timestamp: startTime,
     serverId: message.inGuild ? message.guildId : null,
     channelId: message.channelId,
-    invokerId: message.author.id,
+    userId: message.author.id,
     command,
     args: args.raw,
     succeeded,
     elapsedTimeMs: new Date().getTime() - startTime,
     executionComment: comment && comment.length > 0 ? comment : null,
-  } as commandEngagement);
+  } as CommandEngagement);
+
+  if (!result.insertedId) {
+    errorLogger.log(LogCategoriesEnum.STATISTICS_FAILURE, 'failed to log command engagement');
+  }
+};
+
+export const soundPlayed = async (
+  sound: string,
+  timestamp: number,
+  message: Message,
+) => {
+  const result = await collections.serverEngagements.insertOne({
+    engagementType: AnalyticsTypesEnum.SOUND_PLAYED,
+    timestamp,
+    serverId: message.inGuild ? message.guildId : null,
+    channelId: message.channelId,
+    userId: message.author.id,
+    sound,
+  } as SoundEngagement);
 
   if (!result.insertedId) {
     errorLogger.log(LogCategoriesEnum.STATISTICS_FAILURE, 'failed to log command engagement');

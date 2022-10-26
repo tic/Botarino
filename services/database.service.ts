@@ -19,8 +19,5 @@ export const client = new MongoClient(
 export const collections = {
   reminders: client.db(config.mongo.primaryDatabase).collection('reminders'),
   serverEngagements: client.db(config.mongo.primaryDatabase).collection('serverEngagements'),
-  commandStats: client.db(config.mongo.primaryDatabase).collection('commandStats'),
-  gifStats: client.db(config.mongo.primaryDatabase).collection('gifStats'),
   gifs: client.db(config.mongo.primaryDatabase).collection('gifs'),
-  soundStats: client.db(config.mongo.primaryDatabase).collection('soundStats'),
 };
