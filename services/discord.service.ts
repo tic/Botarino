@@ -44,7 +44,7 @@ const launchModules = async () => {
   await Promise.all(
     modules.map(async (module) => {
       const moduleLogger = getLogger(`module_${module.name.replace(/\s/g, '-')}`);
-      if (!module.runInDevMode) {
+      if (config.meta.inDevelopment && !module.runInDevMode) {
         moduleLogger.log('module does not run in dev mode');
         return;
       }
