@@ -23,7 +23,7 @@ export const getConfig = () => {
     return value;
   }
 
-  const inDevelopment = parsedEnv?.MODE !== 'PRODUCTION';
+  const inDevelopment = parsedEnv?.NODE_ENV !== 'PRODUCTION';
 
   const createdConfig = {
     meta: {
