@@ -1,12 +1,13 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-constant-condition */
 import { dispatchAction } from '../services/discord.service';
-import { logMessage } from '../services/logger.service';
+import { getLogger } from '../services/logger.service';
 import { sleep } from '../services/util.service';
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 import { ModuleControllerType } from '../types/serviceModulesTypes';
 import { totalRuntime, episodes } from './episodes.data.json';
 
+const logger = getLogger('module_presence-controller');
 let episode = {
   name: '',
   spot: '',
@@ -16,7 +17,7 @@ let episode = {
 
 const runModule = async () => {
   while (true) {
-    logMessage('module_presence-controller', 'updating presence');
+    logger.log('updating presence');
     let seriesProgress = (Date.now() % totalRuntime.milliseconds) / 1000;
     let targetEpisode = 0;
     episode = { ...episodes[0] };
@@ -40,7 +41,7 @@ const runModule = async () => {
       },
     });
 
-    logMessage('module_presence-controller', 'dispatched presence update');
+    logger.log('dispatched presence update');
     await sleep((episode.runtime - seriesProgress) * 1000);
   }
 };

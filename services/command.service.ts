@@ -2,10 +2,12 @@ import { readdirSync } from 'fs';
 import { Message } from 'discord.js';
 import { Arguments } from '../types/serviceArgumentParserTypes';
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
-import { getLogger, getErrorLogger, logError } from './logger.service';
+import { getLogger, getErrorLogger } from './logger.service';
 import { CommandControllerType } from '../types/commandTypes';
 import * as analytics from './analytics.service';
 
+// eslint-disable-next-line no-unused-vars
+const commandErrorLoggers: Record<string, { log: (arg0: LogCategoriesEnum, arg?: string) => Promise<boolean> }> = {};
 const logger = getLogger('service_command');
 const errorLogger = getErrorLogger('service_command');
 
@@ -45,12 +47,15 @@ export const runCommand = async (command: string, args: Arguments, sourceMessage
       await controller.executor(args, sourceMessage);
     }
   } catch (error) {
-    logError(
+    if (!commandErrorLoggers[command]) {
+      commandErrorLoggers[command] = getErrorLogger(`command_${command}`);
+    }
+
+    commandSuccess = false;
+    commandErrorLoggers[command].log(
       LogCategoriesEnum.COMMAND_EXECUTION_FAILURE,
-      `command_${command}`,
       `unhandled exception: ${String(error)}`,
     );
-    commandSuccess = false;
   }
 
   try {

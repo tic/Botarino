@@ -4,7 +4,7 @@ import { Message, TextChannel } from 'discord.js';
 import { interaction } from '../services/interactions.service';
 import { ModuleControllerType } from '../types/serviceModulesTypes';
 import { InteractionSourceEnum } from '../types/serviceInteractionTypes';
-import { logError } from '../services/logger.service';
+import { getErrorLogger } from '../services/logger.service';
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
 import { collections } from '../services/database.service';
 import { GifEngagement, GifItem } from '../types/databaseModels';
@@ -12,6 +12,7 @@ import { buildBasicMessage, dispatchAction, getClientId } from '../services/disc
 import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 import { AnalyticsTypesEnum } from '../types/serviceAnalyticsTypes';
 
+const errorLogger = getErrorLogger('module_gif');
 let gifs: GifItem[];
 
 const refreshGifs = async () => {
@@ -19,7 +20,7 @@ const refreshGifs = async () => {
     const result = await collections.gifs.find({}).toArray();
     gifs = result as GifItem[];
   } catch (error) {
-    logError(LogCategoriesEnum.MODULE_RUN_FAILURE, 'module_gif', String(error));
+    errorLogger.log(LogCategoriesEnum.MODULE_RUN_FAILURE, String(error));
   }
 };
 
@@ -78,7 +79,7 @@ const runModule = async () => {
                 ),
               });
             } catch (error) {
-              logError(LogCategoriesEnum.MODULE_RUN_FAILURE, 'module_gif', String(error));
+              errorLogger.log(LogCategoriesEnum.MODULE_RUN_FAILURE, String(error));
             }
             break;
           }

@@ -15,7 +15,10 @@ import {
 import { join } from 'node:path';
 import { Sound } from '../types/commandSpecificTypes';
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
-import { logError, logMessage } from './logger.service';
+import { getErrorLogger, getLogger } from './logger.service';
+
+const logger = getLogger('service_audioPlayer');
+const errorLogger = getErrorLogger('service_audioPlayer');
 
 const player = createAudioPlayer({
   behaviors: {
@@ -50,7 +53,7 @@ export const playSoundToChannel = async (sound: Sound, channel: VoiceBasedChanne
   let connection = getVoiceConnection(channel.guildId);
 
   if (connection?.joinConfig?.channelId !== channel.id) {
-    logMessage('service_audioPlayer', 'establishing connection');
+    logger.log('establishing connection');
     connection = joinVoiceChannel({
       channelId: channel.id,
       guildId: channel.guildId,
@@ -69,19 +72,19 @@ export const playSoundToChannel = async (sound: Sound, channel: VoiceBasedChanne
     ]);
 
     if (!isConnected) {
-      logError(LogCategoriesEnum.CONNECTION_FAILURE, 'service_audioPlayer', 'voice channel connection timeout');
+      errorLogger.log(LogCategoriesEnum.CONNECTION_FAILURE, 'voice channel connection timeout');
       return false;
     }
   } else {
-    logMessage('service_audioPlayer', 'already connected -- using existing connection');
+    logger.log('already connected -- using existing connection');
   }
 
   if (!connection) {
-    logMessage('service_audioPlayer', 'invalid connection object');
+    logger.log('invalid connection object');
     return false;
   }
 
-  logMessage('service_audioPlayer', 'connected -- playing');
+  logger.log('connected -- playing');
   connection.subscribe(player);
   player.play(getResource(sound));
   beginDisconnectTimer(channel.id, connection);

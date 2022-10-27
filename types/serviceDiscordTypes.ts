@@ -6,29 +6,7 @@ import {
   MessageEmbed,
   MessagePayload,
   PresenceData,
-  VoiceBasedChannel,
 } from 'discord.js';
-
-export enum ChannelClassEnum {
-  GENERAL_UPDATES = 'GENERAL_UPDATES',
-  HOLIDAY = 'HOLIDAY',
-};
-
-export type DiscordRoleType = {
-  id: string,
-  name: string,
-};
-
-export type DiscordChannelType = {
-  id: string,
-};
-
-export type DiscordServerType = {
-  name: string,
-  id: string,
-  roles: DiscordRoleType[],
-  channels: Record<ChannelClassEnum, DiscordChannelType[]>,
-};
 
 export enum DiscordActionTypeEnum {
   SEND_MESSAGE = 0,

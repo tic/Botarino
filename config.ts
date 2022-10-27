@@ -3,8 +3,6 @@ import {
   config as dotenvConfig,
   DotenvConfigOutput,
 } from 'dotenv';
-import { prodDiscordServerConfig, devDiscordServerConfig } from './discord.config.json';
-import { DiscordServerType } from './types/serviceDiscordTypes';
 
 export const getConfig = () => {
   console.log('[CNFIG] Loading project configuration...');
@@ -36,11 +34,6 @@ export const getConfig = () => {
       maintainer: env('DISCORD_MAINTAINER'),
       secret: env('DISCORD_SECRET'),
       username: env('DISCORD_USERNAME'),
-      servers: (
-        inDevelopment
-          ? devDiscordServerConfig
-          : prodDiscordServerConfig
-        ) as unknown as DiscordServerType[],
       identifier: 'service_discord',
       prefix: '!',
     },

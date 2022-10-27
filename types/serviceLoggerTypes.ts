@@ -13,3 +13,7 @@ export enum LogCategoriesEnum {
   MODULE_INITIALIZATION_FAILURE = 'MODULE_INITIALIZATION_FAILURE',
   MODULE_RUN_FAILURE = 'MODULE_RUN_FAILURE',
 };
+
+export type LoggerType = (arg0: string, arg1: string) => Promise<boolean>;
+
+export type ErrorLoggerType = (arg0: LogCategoriesEnum, arg1: string, arg2?: string) => Promise<boolean>;

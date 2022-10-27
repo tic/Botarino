@@ -1,19 +1,21 @@
 import gifModule from '../modules/gif.module';
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
 import { ModuleControllerType } from '../types/serviceModulesTypes';
-import { logError, logMessage } from './logger.service';
+import { getErrorLogger, getLogger } from './logger.service';
 import { sleep } from './util.service';
 
+const logger = getLogger('service_modules');
 const moduleControllers: ModuleControllerType[] = [gifModule];
 
 const runModules = () => moduleControllers.forEach(async (controller) => {
   const identifier = `service_module_${controller.name}`;
+  const moduleErrorLogger = getErrorLogger(identifier);
   let configuration = null;
   try {
-    logMessage('service_modules', `setting up module ${controller.name}`);
+    logger.log(`setting up module ${controller.name}`);
     configuration = await controller.setup();
   } catch (error) {
-    logError(LogCategoriesEnum.MODULE_INITIALIZATION_FAILURE, identifier, String(error));
+    moduleErrorLogger.log(LogCategoriesEnum.MODULE_INITIALIZATION_FAILURE, String(error));
   }
 
   let consecutiveErrors = 0;
@@ -25,14 +27,10 @@ const runModules = () => moduleControllers.forEach(async (controller) => {
       consecutiveErrors = 0;
     } catch (error) {
       consecutiveErrors++;
-      logError(LogCategoriesEnum.MODULE_RUN_FAILURE, identifier, String(error));
+      moduleErrorLogger.log(LogCategoriesEnum.MODULE_RUN_FAILURE, String(error));
 
       if (consecutiveErrors === 10) {
-        logError(
-          LogCategoriesEnum.MODULE_RUN_FAILURE,
-          identifier,
-          '10 consecutive failures; aborting module',
-        );
+        moduleErrorLogger.log(LogCategoriesEnum.MODULE_RUN_FAILURE, '10 consecutive failures; aborting module');
         return;
       }
 

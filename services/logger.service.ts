@@ -1,10 +1,16 @@
 /* eslint-disable no-console */
 import { appendFile } from 'fs';
-import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
+import { ErrorLoggerType, LogCategoriesEnum, LoggerType } from '../types/serviceLoggerTypes';
+
+const twoDigitPad = (value: number) : string => (value < 10 ? `0${value}` : value.toString());
+
+const getLogFileName = () : string => {
+  const now = new Date();
+  return `./logs/${now.getFullYear()}.${twoDigitPad(now.getMonth() + 1)}.botarino.log`;
+};
 
 const getTimeString = () : string => {
   const now = new Date();
-  const twoDigitPad = (value: number) : string => (value < 10 ? `0${value}` : value.toString());
   return `${
     twoDigitPad(now.getFullYear())
   }.${
@@ -44,19 +50,12 @@ export const interpretLogLine = (logLine: string) : void => {
   }
 };
 
-export const logError = async (category: LogCategoriesEnum, source: string, message?: string) : Promise<boolean> => {
-  const timeStr = getTimeString();
-  const assembledMessage = [timeStr,
-    logVersion,
-    category,
-    source,
-    message || '',
-  ].reduce((msg, content) => msg.replace('%s', content), logFormat);
-  console.log(assembledMessage);
+const writeLine = async (line: string) : Promise<boolean> => {
+  console.log(line);
   return new Promise((resolve) => {
     appendFile(
-      `./logs/${timeStr.substring(0, 7)}.botarino.log`,
-      `${assembledMessage}\n`,
+      getLogFileName(),
+      `${line}\n`,
       (error) => {
         resolve(error === null);
       },
@@ -64,24 +63,32 @@ export const logError = async (category: LogCategoriesEnum, source: string, mess
   });
 };
 
-export const logMessage = async (source: string, message: string) : Promise<boolean> => {
+const logError: ErrorLoggerType = (
+  category: LogCategoriesEnum,
+  source: string,
+  message?: string,
+) : Promise<boolean> => {
   const timeStr = getTimeString();
-  const assembledMessage = [timeStr,
+  const assembledMessage = [
+    timeStr,
+    logVersion,
+    category,
+    source,
+    message || '',
+  ].reduce((msg, content) => msg.replace('%s', content), logFormat);
+  return writeLine(assembledMessage);
+};
+
+const logMessage: LoggerType = (source: string, message: string) : Promise<boolean> => {
+  const timeStr = getTimeString();
+  const assembledMessage = [
+    timeStr,
     logVersion,
     LogCategoriesEnum.STATUS_LOG,
     source,
     message || '',
   ].reduce((msg, content) => msg.replace('%s', content), logFormat);
-  console.log(assembledMessage);
-  return new Promise((resolve) => {
-    appendFile(
-      `./logs/${timeStr.substring(0, 7)}.botarino.log`,
-      `${assembledMessage}\n`,
-      (error) => {
-        resolve(error === null);
-      },
-    );
-  });
+  return writeLine(assembledMessage);
 };
 
 export const getErrorLogger = (src: string) => ({

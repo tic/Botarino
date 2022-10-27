@@ -15,7 +15,7 @@ import { DiscordActionType, DiscordActionTypeEnum, IEmbedProperties } from '../t
 import { LogCategoriesEnum } from '../types/serviceLoggerTypes';
 import { ModuleControllerType } from '../types/serviceModulesTypes';
 import { parseArguments } from './argumentParser.service';
-import { getErrorLogger, getLogger, logMessage } from './logger.service';
+import { getErrorLogger, getLogger } from './logger.service';
 import { Semaphore, sleep } from './util.service';
 
 const logger = getLogger(config.discord.identifier);
@@ -43,16 +43,16 @@ const launchModules = async () => {
 
   await Promise.all(
     modules.map(async (module) => {
-      const sourceName = `module_${module.name.replace(/\s/g, '-')}`;
+      const moduleLogger = getLogger(`module_${module.name.replace(/\s/g, '-')}`);
       if (!module.runInDevMode) {
-        logMessage(sourceName, 'module does not run in dev mode');
+        moduleLogger.log('module does not run in dev mode');
         return;
       }
 
-      logMessage(sourceName, 'initializing module');
+      moduleLogger.log('initializing module');
       await module.setup();
 
-      logMessage(sourceName, 'starting module');
+      moduleLogger.log('starting module');
       module.run();
     }),
   );
