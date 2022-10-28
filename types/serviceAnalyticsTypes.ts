@@ -10,7 +10,7 @@ export enum AnalyticsTypesEnum {
 
 export const AnalyticsTypesEnumToString: Record<AnalyticsTypesEnum, string> = {
   [AnalyticsTypesEnum.NEW_MESSAGE]: 'new message',
-  [AnalyticsTypesEnum.COMMAND_USED]: '',
-  [AnalyticsTypesEnum.SOUND_PLAYED]: '',
-  [AnalyticsTypesEnum.GIF_AWARDED]: '',
+  [AnalyticsTypesEnum.COMMAND_USED]: 'command used',
+  [AnalyticsTypesEnum.SOUND_PLAYED]: 'sound played',
+  [AnalyticsTypesEnum.GIF_AWARDED]: 'gif awarded',
 };

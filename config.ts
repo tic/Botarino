@@ -28,7 +28,6 @@ export const getConfig = () => {
   const createdConfig = {
     meta: {
       inDevelopment,
-      inPracticeMode: env('PRACTICE_MODE') === 'true',
     },
     discord: {
       maintainer: env('DISCORD_MAINTAINER'),
@@ -46,6 +45,9 @@ export const getConfig = () => {
     },
     hypervisor: {
       identifier: 'service_hypervisor',
+    },
+    analytics: {
+      enabled: env('DO_ANALYTICS') === 'true',
     },
   };
 

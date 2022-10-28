@@ -1,4 +1,5 @@
 import { Message } from 'discord.js';
+import { config } from '../config';
 import { CommandEngagement, ServerEngagement, SoundEngagement } from '../types/databaseModels';
 import { AnalyticsTypesEnum } from '../types/serviceAnalyticsTypes';
 import { Arguments } from '../types/serviceArgumentParserTypes';
@@ -9,6 +10,10 @@ import { getErrorLogger } from './logger.service';
 const errorLogger = getErrorLogger('service_analytics');
 
 export const messagePosted = async (message: Message) => {
+  if (!config.analytics.enabled) {
+    return;
+  }
+
   const engagement: ServerEngagement = {
     engagementType: AnalyticsTypesEnum.NEW_MESSAGE,
     serverId: message.inGuild() ? message.guildId : null,
@@ -28,6 +33,10 @@ export const commandUsed = async (
   comment: string,
   message: Message,
 ) => {
+  if (!config.analytics.enabled) {
+    return;
+  }
+
   const result = await collections.serverEngagements.insertOne({
     engagementType: AnalyticsTypesEnum.COMMAND_USED,
     timestamp: startTime,
@@ -51,6 +60,10 @@ export const soundPlayed = async (
   timestamp: number,
   message: Message,
 ) => {
+  if (!config.analytics.enabled) {
+    return;
+  }
+
   const result = await collections.serverEngagements.insertOne({
     engagementType: AnalyticsTypesEnum.SOUND_PLAYED,
     timestamp,
