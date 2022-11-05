@@ -1,9 +1,11 @@
-import { Message } from 'discord.js';
+import { Message, VoiceState } from 'discord.js';
 import { config } from '../config';
 import { ServerEngagement } from '../types/databaseModels';
 import { AnalyticsTypesEnum } from '../types/serviceAnalyticsTypes';
 import {
   InteractionResolution,
+  InteractionSourceEnum,
+  interactionSources,
   InteractionType,
   PendingInteractionType,
   ResolvingFunction,
@@ -93,27 +95,38 @@ export const hypervisor = async (message: Message) => {
     const matchedInteractions = new Set<number>();
     for (let i = 0; i < pendingInteractions.length; i++) {
       const pendingInteraction = pendingInteractions[i];
-      if (matchingBlocked && pendingInteraction.blockable) {
+      if (
+        !interactionSources.messageCreate.includes(pendingInteraction.interaction.interactionSource)
+        || (matchingBlocked && pendingInteraction.blockable)
+      ) {
         continue;
       }
 
-      const isPrefixSatisfied = pendingInteraction.interaction.requirePrefix
-        ? message.content.indexOf(pendingInteraction.interaction.requirePrefix) === 0
-        : true;
+      let matched = false;
+      switch (pendingInteraction.interaction.interactionSource) {
+        case InteractionSourceEnum.WAIT_FOR_MESSAGE_CUSTOM_CRITERIA:
+          if (pendingInteraction.interaction.validator) {
+            matched = pendingInteraction.interaction.validator(message);
+          }
+          break;
 
-      const isUserIdSatisfied = pendingInteraction.interaction.userId
-        ? message.author.id === pendingInteraction.interaction.userId
-        : true;
+        case InteractionSourceEnum.WAIT_FOR_MESSAGE_FROM_CHANNEL:
+          matched = message.channelId === pendingInteraction.interaction.channelId;
+          break;
 
-      const isChannelIdSatisfied = pendingInteraction.interaction.channelId
-        ? message.channelId === pendingInteraction.interaction.channelId
-        : true;
+        case InteractionSourceEnum.WAIT_FOR_MESSAGE_IN_SERVER:
+          matched = message.guildId === pendingInteraction.interaction.serverId;
+          break;
 
-      const isMessageIdSatisfied = pendingInteraction.interaction.messageId
-        ? message.id === pendingInteraction.interaction.messageId
-        : true;
+        case InteractionSourceEnum.WAIT_FOR_MESSAGE_FROM_USER:
+        default:
+          matched = message.author.id === pendingInteraction.interaction.userId;
+      }
 
-      const matched = isPrefixSatisfied && isUserIdSatisfied && isChannelIdSatisfied && isMessageIdSatisfied;
+      if (pendingInteraction.interaction.requirePrefix) {
+        matched &&= message.content.indexOf(pendingInteraction.interaction.requirePrefix) === 0;
+      }
+
       if (matched) {
         matchedInteractions.add(i);
         matchingBlocked = matchingBlocked || pendingInteraction.blocking;
@@ -143,5 +156,73 @@ export const hypervisor = async (message: Message) => {
   if (!matchingBlocked && classification.isCommand) {
     logger.log(`no pending blocking interactions for command ${classification.arguments.basicParse[0]}`);
     await runCommand(classification.arguments.basicParse[0], classification.arguments, message);
+  }
+};
+
+export const voiceUpdate = async (oldState: VoiceState, newState: VoiceState) => {
+  let interactionsToFulfill: PendingInteractionType[] = [];
+  let matchingBlocked = false;
+
+  const release = await interactionLock.acquire();
+
+  try {
+    const matchedInteractions = new Set<number>();
+    for (let i = 0; i < pendingInteractions.length; i++) {
+      const pendingInteraction = pendingInteractions[i];
+      if (
+        !interactionSources.voiceStateUpdate.includes(pendingInteraction.interaction.interactionSource)
+        || (matchingBlocked && pendingInteraction.blockable)
+      ) {
+        continue;
+      }
+
+      let matched = false;
+      switch (pendingInteraction.interaction.interactionSource) {
+        case InteractionSourceEnum.WAIT_FOR_VOICE_EVENT_CUSTOM_CRITERIA:
+          matched = pendingInteraction.interaction.vsValidator(oldState, newState);
+          break;
+
+        case InteractionSourceEnum.WAIT_FOR_VOICE_EVENT_USER_JOIN_CHANNEL:
+          matched = pendingInteraction.interaction.channelId === newState.channelId;
+          break;
+
+        case InteractionSourceEnum.WAIT_FOR_VOICE_EVENT_USER_JOIN_IN_SERVER:
+          matched = pendingInteraction.interaction.serverId === newState.guild.id && newState.channel !== null;
+          break;
+
+        case InteractionSourceEnum.WAIT_FOR_VOICE_EVENT_USER_LEAVE_CHANNEL:
+          matched = pendingInteraction.interaction.channelId === newState.channelId;
+          break;
+
+        case InteractionSourceEnum.WAIT_FOR_VOICE_EVENT_USER_LEAVE_IN_SERVER:
+        default:
+          matched = pendingInteraction.interaction.serverId === oldState.guild.id
+            && oldState.channel !== null
+            && newState.channel === null;
+      }
+
+      if (matched) {
+        matchedInteractions.add(i);
+        matchingBlocked = matchingBlocked || pendingInteraction.blocking;
+      }
+    }
+
+    interactionsToFulfill = pendingInteractions.filter((_, i) => matchedInteractions.has(i));
+    Array.from(matchedInteractions.values()).sort((a, b) => b - a).forEach((index) => {
+      pendingInteractions.splice(index, 1);
+    });
+
+    if (interactionsToFulfill.length > 0) {
+      const pluralizedEnding = interactionsToFulfill.length === 1 ? '' : 's';
+
+      logger.log(`fulfilling ${interactionsToFulfill.length} pending interaction${pluralizedEnding}`);
+      interactionsToFulfill.forEach((interactionItem) => interactionItem.resolver({
+        timeout: false,
+        success: true,
+        vsContent: [oldState, newState],
+      }));
+    }
+  } finally {
+    release();
   }
 };
