@@ -61,7 +61,7 @@ export const padToNDigits = (value: number, length: number) => {
   }
 
   const remainingLength = length - base.length;
-  const prefix = [...new Array(remainingLength)].map(() => '0');
+  const prefix = [...new Array(remainingLength)].map(() => '0').join('');
   return `${prefix}${base}`;
 };
 

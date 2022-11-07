@@ -18,11 +18,16 @@ export interface ServerEngagement extends StatisticItem {
   username: string;
 }
 
+type HourType = `${'0' | '1'}${'0' | '1' | '2' | '3' | '5' | '6' | '7' | '8' | '9'}` | '20' | '21' | '22' | '23';
+type MinuteType = `${'0' | '1' | '2' | '3' | '4' | '5'}${'0' | '1' | '2' | '3' | '5' | '6' | '7' | '8' | '9'}`;
+export type ReminderAtType = `${HourType}:${MinuteType}`;
+
 export interface Reminder extends DatabaseItem {
   authorId: string;
   targetChannelId: string;
-  frequency: string;
-  trigger: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23;
+  frequency: 'ONCE' | 'YEARLY' | 'MONTHLY' | 'WEEKLY' | 'DAILY';
+  on: string;
+  at: ReminderAtType,
   title: string;
   description: string;
 }

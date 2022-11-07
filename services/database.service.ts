@@ -1,6 +1,8 @@
 import { MongoClient } from 'mongodb';
 import { config } from '../config';
 
+export const isObjectId = (str: string) => !!str.match(/[0-9a-f]{24}/);
+
 export const client = new MongoClient(
   `mongodb+srv://${
     config.mongo.username
