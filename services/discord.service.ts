@@ -8,6 +8,7 @@ import {
   TextChannel,
   Permissions,
   AnyChannel,
+  User,
 } from 'discord.js';
 import { readdirSync } from 'fs';
 import { config } from '../config';
@@ -289,3 +290,5 @@ export const buildIEmbed = (props?: IEmbedProperties) => {
 
   return baseEmbed;
 };
+
+export const getUser = (userId: string) : User => client.users.cache.get(userId);

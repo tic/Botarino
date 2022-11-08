@@ -69,3 +69,9 @@ export const formatNumAsPct = (num: number, roundedDigits: number) => {
   const offset = 10 ** roundedDigits;
   return Math.round(num * 100 * offset) / offset;
 };
+
+export const pluralizedItem = (
+  count: number,
+  entity: string,
+  pluralEntity? : string,
+) : string => `${count} ${count === 1 ? entity : (pluralEntity || `${entity}s`)}`;

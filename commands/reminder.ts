@@ -1,6 +1,8 @@
+import { ObjectId } from 'mongodb';
+import { buildReminderEmbed } from '../modules/reminders';
 import { collections, isObjectId } from '../services/database.service';
 import { buildBasicMessage, buildIEmbed, dispatchAction } from '../services/discord.service';
-import { padToNDigits } from '../services/util.service';
+import { padToNDigits, pluralizedItem } from '../services/util.service';
 import { CommandControllerType, CommandExecutor } from '../types/commandTypes';
 import { Reminder, ReminderAtType } from '../types/databaseModels';
 import { Arguments } from '../types/serviceArgumentParserTypes';
@@ -90,7 +92,7 @@ const titleDescRegexps = [/"(.*)" "(.*)"/];
 
 const validator = (args: Arguments) => {
   if (args.basicParseWithoutCommand[0] === 'list') {
-    return [undefined, 'all'].includes(args.basicParseWithoutCommand[1]);
+    return args.basicParseWithoutCommand.length === 1;
   }
 
   if (
@@ -134,9 +136,66 @@ const findRegexAndGetMatches = (
 
 const command: CommandExecutor = async (args, message) => {
   if (args.basicParseWithoutCommand[0] === 'list') {
-    // TODO
+    const reminders = (await collections.reminders
+      .find({ authorId: message.author.id })
+      .toArray()) as unknown as Reminder[];
+
+    const inServer = message.inGuild();
+    const remindersInServer = reminders.filter((reminder) => reminder.targetServerId === message.guildId);
+    const remindersInChannel = reminders.filter((reminder) => reminder.targetChannelId === message.channelId);
+    const remindersToPost = inServer ? remindersInChannel : reminders;
+    const serversWithUsersReminders = Array.from(new Set(reminders.map((reminder) => reminder.targetServerId))).length;
+    const channelsWithUsersReminders = Array.from(new Set(reminders.map(
+      (reminder) => reminder.targetChannelId,
+    ))).length;
+
+    const embed = remindersToPost.length === 0
+      ? buildIEmbed({
+        title: 'Your reminders',
+        description: `You have not created any reminders${inServer ? ' in this channel' : ''}!`,
+      })
+      : buildIEmbed({
+        removeInlineDefault: true,
+        title: 'Your reminders',
+        description: inServer
+          ? `You have created ${pluralizedItem(remindersInServer.length, 'reminder')} in this server. `
+            + `Listing ${pluralizedItem(remindersInChannel.length, 'reminder')} from this channel.`
+          : `You have created ${pluralizedItem(reminders.length, 'reminder')} in `
+            + `${pluralizedItem(channelsWithUsersReminders, 'channel')} across `
+            + `${pluralizedItem(serversWithUsersReminders, 'server')}.`,
+        fields: inServer
+          ? remindersToPost.map((reminder) => ({
+            name: reminder.title,
+            value: `Description: ${reminder.description}\n`
+              + `Occurs: ${reminder.frequency.toLowerCase()} on ${reminder.on} at ${reminder.at}`,
+          }))
+          : remindersToPost.map((reminder) => ({
+            name: reminder.title,
+            value: `Description: ${reminder.description}\n`
+              + `Occurs: ${reminder.frequency.toLowerCase()} on ${reminder.on} at ${reminder.at}`
+              + `Posts in ${reminder.targetServerId ? `<#${reminder.targetChannelId}` : 'DM'}>`,
+          })),
+      });
+
+    await dispatchAction({
+      actionType: DiscordActionTypeEnum.SEND_MESSAGE,
+      payload: buildBasicMessage(message.channel, ' ', [embed]),
+    });
   } else if (args.basicParseWithoutCommand[0] === 'preview') {
-    // TODO
+    const reminder = await collections.reminders.findOne({
+      _id: new ObjectId(args.basicParseWithoutCommand[1]),
+      authorId: message.author.id,
+    }) as (Reminder | null);
+
+    const embed = reminder ? buildReminderEmbed(reminder) : buildIEmbed({
+      title: 'Unknown reminder',
+      description: 'You do not have a reminder with that id. Does it exist and belong to you?',
+    });
+
+    await dispatchAction({
+      actionType: DiscordActionTypeEnum.SEND_MESSAGE,
+      payload: buildBasicMessage(message.channel, reminder ? 'PREVIEW' : ' ', [embed]),
+    });
   } else if (args.basicParseWithoutCommand[0] === 'delete') {
     // TODO
   } else if (args.basicParseWithoutCommand[0] === 'add') {
@@ -147,6 +206,7 @@ const command: CommandExecutor = async (args, message) => {
 
     const reminder = {
       authorId: message.author.id,
+      targetServerId: message.inGuild ? message.guildId : null,
       targetChannelId: message.channelId,
       frequency: rawFrequency.toUpperCase(),
       on,

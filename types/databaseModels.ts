@@ -25,6 +25,7 @@ export type ReminderAtType = `${HourType}:${MinuteType}`;
 export interface Reminder extends DatabaseItem {
   authorId: string;
   targetChannelId: string;
+  targetServerId: string | null;
   frequency: 'ONCE' | 'YEARLY' | 'MONTHLY' | 'WEEKLY' | 'DAILY';
   on: string;
   at: ReminderAtType,
