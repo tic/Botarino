@@ -1,6 +1,8 @@
 # Botarino v4
 
-Botarino is a fully modular and easily customizable general purpose chatbot written in TypeScript. Currently it is build with the intention of being used as a Discord bot, but a substantial amount of the architecture is designed in a way which will allow for easy porting to other platforms. Nearly all of the Discord-specific functionality exists within the Discord service file, make it easy to replace with logic for some other platform.
+Botarino is a fully modular and easily customizable general purpose chatbot written in TypeScript. Currently it is built with the intention of being used as a Discord bot, but a substantial amount of the architecture is designed in a way which will allow for easy porting to other platforms. Nearly all of the Discord-specific functionality exists within the Discord service file, making it easier to replace with logic for some other platform.
+
+Unfortunately, I have implemented a few things using interfaces from the discord.js library, which would make porting certain stuff a bit tricky. In the future I plan on replacing this sort of thing with interfaces specifically for this project and having the Discord service translate as needed.
 
 This is the fourth major iteration of Botarino, following:
 - v1 -- simplistic, single-file.
@@ -10,6 +12,10 @@ This is the fourth major iteration of Botarino, following:
 
 
 # Architecture
+
+The main idea here is that commands are spawned by the hypervisor service (see below), which listens for messages. Commands are intended to represent code snippets which run at the request of a user. Modules are scripts which are spawned when the bot first comes online and can run for as long as they want. Unlike the command concept, a module is not necessarily connected with a particular message. Within a command or module, additional input can eb requested through the use of interactions. Events are funnelled through handlers which attempt to fulfill any pending interactions waiting for the event which has been triggered. The command or module can dispatch actions to do things like send messages, update status/presence, and so forth.
+
+**NOTE:** not all possible events are tracked by the interaction service, and not all possible actions are implemented in the action dispatcher. If you need to listen for a certain event or dispatch an action which there is no support for, see the *"Adding Actions and Interactions"* section below.
 
 ## Root Files
 The root level of the repository, `/`, contains configuration files and the startup file. These are designed to requrire little to no modifications during development.
@@ -120,5 +126,147 @@ const command: CommandExecutor = async (args, message) => {
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
     payload: buildBasicMessage(message.channel, i === 20 ? `${message.author.username} wins!` : 'I win!', []),
   });
-}
+};
+```
+
+
+
+# Adding Actions and Interactions
+
+As mentioned above, there is not out-of-the-box support for all possible events or actions. In this section, we'll cover the process for adding a new action or interaction. Since interactions are like inputs to commands and modules, we'll go over that first. Our functionality will be represented in the form of a module, since a) I haven't covered that in the readme yet and b) I think it's easier to craft an example using a module.
+
+Our example for this section will be creating a module that posts a welcome message in a channel whenever a new user joins a server and sends them a direct message with the server rules. In order to do this, the module will need to listen for when a user joins a server and be able to send a direct message.
+
+## Adding an Interaction
+
+1. Add a new interaction type to the type enum (`types/serviceInteractionTypes.ts`).
+    - At a minimum, add something like `WAIT_FOR_SERVER_EVENT_USER_JOIN_IN_SERVER = 50` to the `InteractionSourceEnum`. The number doesn't matter, it just needs to be unique within the enum.
+    - I recommend adding a few different criteria for each new interaction type. For example, for the message-create-based interaction, there are shorthands to wait for a message from a specific user, in a particular server, or based on custom criteria. **I strongly recommend that you add a custom criteria option for any new event. This will allow you to support any possible use case based on that event in the future without having to come back here and make edits.** If you find yourself repeating the same custom criteria many times, consider coming back here and adding an enum option for it.
+
+2. Add a list of interaction sources that are resolvable by the new event (`types/serviceInteractionTypes.ts`).
+    - Add a new property to the `interactionSources` object called "guildMemberAdd". This property name should match the name of the relevant event.
+    - Its value should be an array containing `InteractionSourceEnum` values. In this example, at least `[InteractionSourceEnum.WAIT_FOR_SERVER_EVENT_USER_JOIN_IN_SERVER]`.
+
+3. Add any necessary properties to the `InteractionResolution` type (`types/serviceInteractionTypes.ts`).
+    - Since our new interaction is waiting for a user to join a server, we should probably resovle the interaction with an object representing the user who has joined. Add an optional content property called `guildMemberContent?: GuildMember`. Make sure it is an optional property, since not all interactions will resolve with this property.
+
+4. Add a new event handler functtion in the interaction service.
+    - According to the discord.js docs, the `guildMemberAdd` event supplies one parameter of type `GuildMember` to the event handler. Create a function whose header matches this call style: `export const guildMemberAdd = async (member: GuildMember) => {}`.
+    - This function should follow the general skeleton of the other event handling functions. The hypervisor is a but complicated since it can spawn commands, but the `voiceUpdate` one is pretty close to what we will need here. The general outline is:
+        - Acquire the interaction lock so another event can't tamper with the interaction list while we're operating on it.
+        - Figure out which interactions, if any, should be fulfilled by this event.
+        - If interactions needed to be fulfilled, remove them from the pending list and fulfill them.
+
+```javascript
+export const guildMemberAdd = async (member: GuildMember) => {
+  let interactionsToFulfill: PendingInteractionType[] = [];
+  let matchingBlocked = false;
+  const matchedInteractions = new Set<number>();
+
+  // Block other handlers from editing the interaction list while we are.
+  const release = await interactionLock.acquire();
+
+  try {
+    for (let i = 0; i < pendingInteractions.length; i++) {
+      const pendingInteraction = pendingInteractions[i];
+
+      // Skip this interaction if it is impossible to match with the current event.
+      if (
+        !interactionSources.guildMemberAdd.includes(pendingInteraction.interaction.interactionSource)
+        || (matchingBlocked && pendingInteraction.blockable)
+      ) {
+        continue;
+      }
+
+      // Check if this interaction can be fulfilled by this event.
+      let matched = false;
+      switch (pendingInteraction.interaction.interactionSource) {
+        case InteractionSourceEnum.WAIT_FOR_SERVER_EVENT_USER_JOIN_IN_SERVER:
+        default:
+          matched = pendingInteraction.interaction.serverId === member.guild.id;
+      }
+
+      // If it matched, block additional interactions add to the matched list.
+      if (matched) {
+        matchedInteractions.add(i);
+        matchingBlocked ||= pendingInteraction.blocking;
+      }
+    }
+
+    // Extract the list of interactions to fulfill and remove them from the pending list.
+    interactionsToFulfill = pendingInteractions.filter((_, i) => matchedInteractions.has(i));
+    Array.from(matchedInteractions.values()).sort((a, b) => b - a).forEach((index) => {
+      pendingInteractions.splice(index, 1);
+    });
+
+    // Fulfill matched interactions, if there are any, by calling their resolvers.
+    if (interactionsToFulfill.length > 0) {
+      const pluralizedEnding = interactionsToFulfill.length === 1 ? '' : 's';
+
+      logger.log(`fulfilling ${interactionsToFulfill.length} pending interaction${pluralizedEnding}`);
+      interactionsToFulfill.forEach((interactionItem) => interactionItem.resolver({
+        timeout: false,
+        success: true,
+        guildMemberContent: member,
+      }));
+    }
+  } finally {
+    release();
+  }
+};
+```
+
+## Adding an Action
+
+1. Add the action type to the enum (`types/serviceDiscordTypes.ts`).
+    - For our example, something like `SEND_DM = 4` is fine. Again, the number doesn't matter, it just needs to be unique in the enum.
+
+2. Add a new discord action type (`types/serviceDiscordTypes.ts`).
+    - To reduce confusion about which properties are required for each action, this type is defined as a union of possible types. For this action, we need a user id
+
+3. Add action handler for the new action type (`services/discord.service.ts`).
+
+## Implement the module using the new action and interaction!
+
+Modules can be started using the skeleton from `templates/module.template.ts`. Our new module would look something like this after implementation:
+
+```javascript
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-constant-condition */
+import { interaction } from '../services/interactions.service';
+import { ModuleControllerType } from '../types/serviceModulesTypes';
+import { InteractionSourceEnum } from '../types/serviceInteractionTypes';
+import { buildBasicMessage, dispatchAction } from '../services/discord.service';
+import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
+import { sleep } from '../services/util.service';
+
+const runModule = async () => {
+  while (true) {
+    // Wait for the event to occur
+    const event = await interaction({
+      interactionSource: InteractionSourceEnum.WAIT_FOR_SERVER_EVENT_USER_JOIN_IN_SERVER,
+      serverId: 'id of the server to monitor'
+    });
+
+    // Interactions timeout after 10 minutes. There isn't any harm in this
+    // happening, so if we timed out, just restart the loop and wait again.
+    if (!event.timeout || !event.guildMemberContent) {
+      // Send the welcome message
+      await dispatchAction({
+        actionType: DiscordActionTypeEnum.SEND_MESSAGE,
+        payload: buildBasicMessage(
+          /* channel object for the welcome channel */,
+          `Welcome to the server, <@${guildMemberContent.id}>`,
+          [],
+        ),
+      });
+    }
+  }
+};
+
+export default {
+  name: 'welcomeNotifier',
+  run: runModule,
+  setup: () => Promise.resolve(null),
+} as ModuleControllerType;
 ```
