@@ -186,11 +186,11 @@ export const initialize = () => {
 };
 
 export const buildBasicMessage = (
-  destination: AnyChannel | string,
+  destination: string,
   content: string,
   embeds: MessageEmbed[],
 ) => new MessagePayload(
-  (typeof destination === 'string' ? client.channels.cache.get(destination) : destination) as TextChannel,
+  client.channels.cache.get(destination) as TextChannel,
   {
     content,
     embeds,

@@ -94,7 +94,7 @@ const command: CommandExecutor = async (args, message) => {
 
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-    payload: buildBasicMessage(message.channel, ' ', [
+    payload: buildBasicMessage(message.channelId, ' ', [
       buildIEmbed({
         title: 'Bill split results',
         description: `The total amount paid was \`$${total}\`. Splitting that among ${nameCostPairs.length} people, the'

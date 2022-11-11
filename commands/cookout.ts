@@ -170,7 +170,7 @@ const command: CommandExecutor = async (args, message) => {
   if (embeds.length) {
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel, ' ', embeds),
+      payload: buildBasicMessage(message.channelId, ' ', embeds),
     });
   }
 

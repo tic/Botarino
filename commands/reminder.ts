@@ -205,7 +205,7 @@ const command: CommandExecutor = async (args, message) => {
 
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel, ' ', [embed]),
+      payload: buildBasicMessage(message.channelId, ' ', [embed]),
     });
   } else if (args.basicParseWithoutCommand[0] === 'preview') {
     const reminder = await collections.reminders.findOne({
@@ -220,7 +220,7 @@ const command: CommandExecutor = async (args, message) => {
 
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel, reminder ? 'PREVIEW' : ' ', [embed]),
+      payload: buildBasicMessage(message.channelId, reminder ? 'PREVIEW' : ' ', [embed]),
     });
   } else if (args.basicParseWithoutCommand[0] === 'delete') {
     const targetId = args.basicParseWithoutCommand[1];
@@ -241,7 +241,7 @@ const command: CommandExecutor = async (args, message) => {
 
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel, ' ', [embed]),
+      payload: buildBasicMessage(message.channelId, ' ', [embed]),
     });
   } else if (args.basicParseWithoutCommand[0] === 'add') {
     const [, rawFrequency, rawOn]: string[] = findRegexAndGetMatches(frequencyRegexps, args.rawWithoutCommand, 3);
@@ -281,7 +281,7 @@ const command: CommandExecutor = async (args, message) => {
 
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel, ' ', [embed]),
+      payload: buildBasicMessage(message.channelId, ' ', [embed]),
     });
   }
 };

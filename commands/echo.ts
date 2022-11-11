@@ -5,7 +5,7 @@ import { DiscordActionTypeEnum } from '../types/serviceDiscordTypes';
 const executor: CommandExecutor = async (args, message) => {
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-    payload: buildBasicMessage(message.channel, args.raw, []),
+    payload: buildBasicMessage(message.channelId, args.raw, []),
   });
 };
 

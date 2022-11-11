@@ -91,7 +91,7 @@ const command: CommandExecutor = async (args, message) => {
     // Dispatch an action to post the prompt to the channel.
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel, prompt, []),
+      payload: buildBasicMessage(message.channelId, prompt, []),
     });
 
     // Wait for a response from the same player that started
@@ -124,7 +124,7 @@ const command: CommandExecutor = async (args, message) => {
   // the game was (i.e. state who won the game).
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-    payload: buildBasicMessage(message.channel, i === 20 ? `${message.author.username} wins!` : 'I win!', []),
+    payload: buildBasicMessage(message.channelId, i === 20 ? `${message.author.username} wins!` : 'I win!', []),
   });
 };
 ```

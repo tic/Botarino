@@ -7,7 +7,7 @@ const executor: CommandExecutor = async (args, message) => {
   const url = `https://discord.com/oauth2/authorize?client_id=${clientId}&scope=bot`;
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-    payload: buildBasicMessage(message.channel, url, []),
+    payload: buildBasicMessage(message.channelId, url, []),
   });
 };
 

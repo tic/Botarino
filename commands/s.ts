@@ -35,7 +35,7 @@ const command: CommandExecutor = async (args, message) => {
     const results = getPlayableSounds(message.author.id, message.channelId);
     await dispatchAction({
       actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-      payload: buildBasicMessage(message.channel, ' ', [
+      payload: buildBasicMessage(message.channelId, ' ', [
         buildIEmbed({
           title: 'Valid sounds',
           description: results.join('     '),

@@ -31,7 +31,7 @@ const command: CommandExecutor = async (args, message) => {
 
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-    payload: buildBasicMessage(message.channel, ' ', [
+    payload: buildBasicMessage(message.channelId, ' ', [
       buildIEmbed({
         title: 'Bill calculation',
         fields: display.map(

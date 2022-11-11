@@ -48,7 +48,7 @@ const command: CommandExecutor = async (args, message) => {
 
   await dispatchAction({
     actionType: DiscordActionTypeEnum.SEND_MESSAGE,
-    payload: buildBasicMessage(message.channel, ' ', [embed]),
+    payload: buildBasicMessage(message.channelId, ' ', [embed]),
   });
 };
 
