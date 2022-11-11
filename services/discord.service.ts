@@ -186,11 +186,11 @@ export const initialize = () => {
 };
 
 export const buildBasicMessage = (
-  destination: AnyChannel,
+  destination: AnyChannel | string,
   content: string,
   embeds: MessageEmbed[],
 ) => new MessagePayload(
-  destination as TextChannel,
+  (typeof destination === 'string' ? client.channels.cache.get(destination) : destination) as TextChannel,
   {
     content,
     embeds,
@@ -291,4 +291,6 @@ export const buildIEmbed = (props?: IEmbedProperties) => {
   return baseEmbed;
 };
 
-export const getUser = (userId: string) : User => client.users.cache.get(userId);
+export const getUser = async (
+  userId: string,
+) : Promise<User | undefined> => Promise.resolve(client.users.cache.get(userId) || await client.users.fetch(userId));

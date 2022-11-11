@@ -71,6 +71,30 @@ at regex:
 
 */
 
+const dayMap = {
+  sunday: '0',
+  sun: '0',
+  u: '0',
+  monday: '1',
+  mon: '1',
+  m: '1',
+  tuesday: '2',
+  tue: '2',
+  t: '2',
+  wednesday: '3',
+  wed: '3',
+  w: '3',
+  thursday: '4',
+  thu: '4',
+  r: '4',
+  friday: '5',
+  fri: '5',
+  f: '5',
+  saturday: '6',
+  sat: '6',
+  s: '6',
+};
+
 const frequencyRegexps = [
   /(once) on (\d\d?\/\d\d?\/\d{4})/i,
   /(yearly) on \d\d?\/\d\d/i,
@@ -165,13 +189,15 @@ const command: CommandExecutor = async (args, message) => {
             + `${pluralizedItem(serversWithUsersReminders, 'server')}.`,
         fields: inServer
           ? remindersToPost.map((reminder) => ({
-            name: reminder.title,
-            value: `Description: ${reminder.description}\n`
+            name: reminder._id?.toString() || 'No ID',
+            value: `Title: ${reminder.title}\n`
+              + `Description: ${reminder.description}\n`
               + `Occurs: ${reminder.frequency.toLowerCase()} on ${reminder.on} at ${reminder.at}`,
           }))
           : remindersToPost.map((reminder) => ({
-            name: reminder.title,
-            value: `Description: ${reminder.description}\n`
+            name: reminder._id?.toString() || 'No ID',
+            value: `Title: ${reminder.title}\n`
+              + `Description: ${reminder.description}\n`
               + `Occurs: ${reminder.frequency.toLowerCase()} on ${reminder.on} at ${reminder.at}`
               + `Posts in ${reminder.targetServerId ? `<#${reminder.targetChannelId}` : 'DM'}>`,
           })),
@@ -187,7 +213,7 @@ const command: CommandExecutor = async (args, message) => {
       authorId: message.author.id,
     }) as (Reminder | null);
 
-    const embed = reminder ? buildReminderEmbed(reminder) : buildIEmbed({
+    const embed = reminder ? await buildReminderEmbed(reminder) : buildIEmbed({
       title: 'Unknown reminder',
       description: 'You do not have a reminder with that id. Does it exist and belong to you?',
     });
@@ -197,19 +223,46 @@ const command: CommandExecutor = async (args, message) => {
       payload: buildBasicMessage(message.channel, reminder ? 'PREVIEW' : ' ', [embed]),
     });
   } else if (args.basicParseWithoutCommand[0] === 'delete') {
-    // TODO
+    const targetId = args.basicParseWithoutCommand[1];
+    const result = await collections.reminders.deleteOne({
+      _id: new ObjectId(targetId),
+      authorId: message.author.id,
+    });
+
+    const embed = result.deletedCount === 1
+      ? buildIEmbed({
+        title: ':white_check_mark: Reminder Deletion Successful',
+        description: `Successfully deleted reminder with id ${targetId}.`,
+      })
+      : buildIEmbed({
+        title: ':x: Reminder Deletion Failed',
+        description: `Failed to delete reminder with id ${targetId}. Does it exist and belong to you?`,
+      });
+
+    await dispatchAction({
+      actionType: DiscordActionTypeEnum.SEND_MESSAGE,
+      payload: buildBasicMessage(message.channel, ' ', [embed]),
+    });
   } else if (args.basicParseWithoutCommand[0] === 'add') {
-    const [, rawFrequency, on]: string[] = findRegexAndGetMatches(frequencyRegexps, args.rawWithoutCommand, 3);
+    const [, rawFrequency, rawOn]: string[] = findRegexAndGetMatches(frequencyRegexps, args.rawWithoutCommand, 3);
     const [, rawAt]: string[] = findRegexAndGetMatches(atRegexps, args.rawWithoutCommand, 2);
     const [, title, description]: string[] = findRegexAndGetMatches(titleDescRegexps, args.rawWithoutCommand, 3);
     const cleanedAt = padToNDigits(Number(rawAt.replace(':', '')), 4);
+    const cleanedFrequency = rawFrequency.toUpperCase();
+    let cleanedOn = rawOn;
+
+    if (cleanedFrequency === 'WEEKLY') {
+      cleanedOn = dayMap[rawOn];
+    } else if (cleanedFrequency === 'MONTHLY') {
+      cleanedOn = String(Number(rawOn));
+    }
 
     const reminder = {
       authorId: message.author.id,
       targetServerId: message.inGuild ? message.guildId : null,
       targetChannelId: message.channelId,
-      frequency: rawFrequency.toUpperCase(),
-      on,
+      frequency: cleanedFrequency,
+      on: cleanedOn,
       at: `${cleanedAt.substring(0, 2)}:${cleanedAt.substring(2)}` as ReminderAtType,
       title,
       description,
